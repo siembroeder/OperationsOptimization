@@ -37,63 +37,149 @@ def constructArcs(aircraft):
 
     return arcs, nodes, source, sink
 
+def optimizeApronAssignmentModel(arcs, gates, nodes, source, sink):
+    apron_model = Model('Apron')
+    apron_model.params.LogFile = f'log_files/apron.log'
 
+    z = {}
+    for (i,j) in arcs:
+            z[i,j] = apron_model.addVar(lb=0.0, vtype=GRB.BINARY, name=f"z_{i}_{j}")
+
+    apron_model.setObjective(quicksum(z[i,j] for (i,j) in arcs), GRB.MAXIMIZE)
+
+    apron_model.addConstr(quicksum(z[i,j] for (i,j) in arcs if i == source) <= len(gates) - 1, name=f'flowUnitsSource')
+    apron_model.addConstr(quicksum(z[i,j] for (i,j) in arcs if j == sink)   <= len(gates) - 1, name=f'flowUnitsSink')
+
+    for k in nodes.values():
+        lhs = quicksum(z[k,j] for (i,j) in arcs if i==k)
+        rhs = quicksum(z[i,k] for (i,j) in arcs if j==k) 
+
+        apron_model.addConstr(lhs == rhs, name=f'flowConservationNode_{k}')
+        apron_model.addConstr(quicksum(z[k,j] for (i,j) in arcs if i==k) <= 1, name=f'oneOutgoingNode_{k}')
+
+    apron_model.optimize()
+
+    if apron_model.status == GRB.OPTIMAL or apron_model.status == GRB.TIME_LIMIT:
+        return apron_model, z
+    else:
+        print(f'\n\nModel not optimal\n\n')
+        choice = input(f'Do you still want to continue despite non-optimality? y/n')
+        if choice == 'y':
+            return apron_model, z
+        else:
+            print('Exiting')
+
+def findAircraftDistribution(z,aircraft, arcs, source, model):
+    num_paths = sum(z[source, j].X for (i, j) in arcs if i == source)
+    
+    ZD = model.objVal
+    max_aircraft_at_gates = ZD - num_paths
+    NAD = len(aircraft) - max_aircraft_at_gates
+
+    return max_aircraft_at_gates, NAD
+
+def findAssignedLocations(z, aircraft, arcs, nodes, node_to_aircraft):
+    aircraft_at_gates = set()    
+    for k in nodes.values():
+        if sum(z[k, j].X for (i, j) in arcs if i == k) == 1.0:
+            aircraft_at_gates.add(node_to_aircraft[k])
+
+    aircraft_at_apron = set(aircraft.keys()) - aircraft_at_gates
+
+    return aircraft_at_gates, aircraft_at_apron
+
+def findGateSchedules(z, arcs, source, sink, node_to_aircraft):
+    # Extract gate schedules
+    path_starts = [j for (i, j) in arcs if i == source and z[i, j].X == 1.0]
+
+    gate_paths = []
+    for start in path_starts:
+        path = []
+        current = start
+
+        while current != sink:
+            if current != source:
+                path.append(node_to_aircraft[current])
+
+            next_nodes = [j for (i, j) in arcs if i == current and z[i, j].X == 1.0]
+            if not next_nodes:
+                break
+
+            current = next_nodes[0]
+        
+        gate_paths.append(path)
+
+    return gate_paths
 
 
 def main():
     # Currently only for domestic aircraft. Build to models, one for domestic one for international since they're independent.
 
-    domestic_gates = [1,2,3, 'apron']
-    domestic_aircraft = {'dom1': (0,1),
-                         'dom2': (0,1),
-                         'dom8': (0,1),
-                         'dom3': (1,2),
-                         'dom4': (2,3),
-                         'dom5': (2,3),
-                         'dom6': (2,3),
-                         'dom7': (2,3)}
+    dom_gates = [1,2,3,'apron']
+    dom_aircraft = {'dom1': (0,1),
+                    'dom2': (0,1),
+                    'dom3': (0,1),
+                    'dom4': (0,2),
+                    'dom5': (1,3),
+                    'dom6': (2,3),
+                    'dom7': (1,3),
+                    'dom8': (2,3),
+                    'dom9': (2,3)}
     
-    domestic_arcs, domestic_nodes, source, sink = constructArcs(domestic_aircraft)
+    int_gates = [7,8,'apron']
+    int_aircraft = {'int1': (0,1),
+                    'int2': (0,1),
+                    'int3': (0,1),
+                    'int4': (0,2),
+                    'int5': (1,3),
+                    'int6': (2,3),
+                    'int7': (1,3),
+                    'int8': (2,3)}
+    
+    dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
+    int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)
 
-    m = Model('apron')
-    m.params.LogFile = f'OperationsOptimization/log_files/apron.log'
+    
+    dom_apron_model, dom_z         = optimizeApronAssignmentModel(dom_arcs, dom_gates, dom_nodes, dom_source, dom_sink)
+    max_dom_aircraft_at_gates, NAD = findAircraftDistribution(dom_z, dom_aircraft, dom_arcs, dom_source, dom_apron_model)
 
-    z = {}
-    for (i,j) in domestic_arcs:
-            z[i,j] = m.addVar(lb=0.0, vtype=GRB.BINARY, name=f"z_{i}_{j}")
-
-    m.setObjective(quicksum(z[i,j] for (i,j) in domestic_arcs), GRB.MAXIMIZE)
-
-    m.addConstr(quicksum(z[i,j] for (i,j) in domestic_arcs if i == source) <= len(domestic_gates) - 1, name=f'flowUnitsSource')
-    m.addConstr(quicksum(z[i,j] for (i,j) in domestic_arcs if j == sink)   <= len(domestic_gates) - 1, name=f'flowUnitsSink')
-
-    for k in domestic_nodes.values():
-        lhs = quicksum(z[k,j] for (i,j) in domestic_arcs if i==k)
-        rhs = quicksum(z[i,k] for (i,j) in domestic_arcs if j==k) 
-
-        m.addConstr(lhs == rhs, name=f'flowConservationNode_{k}')
-        m.addConstr(quicksum(z[k,j] for (i,j) in domestic_arcs if i==k) <= 1, name=f'oneOutgoingNode_{k}')
-        m.addConstr(quicksum(z[i,k] for (i,j) in domestic_arcs if j==k) <= 1, name=f'oneIncomingNode_{k}')
+    int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
+    max_int_aircraft_at_gates, NAI = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
 
 
+    dom_apron_model.write('log_files/dom_apron_model.lp')
+    int_apron_model.write('log_files/int_apron_model.lp')
 
-    m.optimize()
 
-    if m.status == GRB.OPTIMAL or m.status == GRB.TIME_LIMIT:
-        num_paths = sum(z[source, j].X for (i, j) in domestic_arcs if i == source)
-        
-        ZD = m.objVal
-        max_aircraft_at_gates = ZD - num_paths
-        NAD = len(domestic_aircraft) - max_aircraft_at_gates
+    dom_node_to_aircraft = {n: ac for ac, n in dom_nodes.items()} # inversion of domestic_nodes
+    int_node_to_aircraft = {n: ac for ac, n in int_nodes.items()} # inversion of domestic_nodes
 
-        print("Num aircraft at gates:", max_aircraft_at_gates)
-        print("Num aircraft at apron:", NAD)
+    aircraft_at_dom_gates, aircraft_at_dom_apron = findAssignedLocations(dom_z, dom_aircraft, dom_arcs, dom_nodes, dom_node_to_aircraft)
+    aircraft_at_int_gates, aircraft_at_int_apron = findAssignedLocations(int_z, int_aircraft, int_arcs, int_nodes, int_node_to_aircraft)
 
 
 
+    print('')
+    dom_gate_paths = findGateSchedules(dom_z, dom_arcs, dom_source, dom_sink, dom_node_to_aircraft)
+    for g, path in enumerate(dom_gate_paths, start=1):
+        print(f"Dom_Gate {g}: {path}")
 
+    int_gate_paths = findGateSchedules(int_z, int_arcs, int_source, int_sink, int_node_to_aircraft)
+    for g, path in enumerate(int_gate_paths, start=1):
+        print(f"Int_Gate {g}: {path}")
 
-    return ...
+    print("\nNum dom aircraft at gates:", max_dom_aircraft_at_gates)
+    print("Num dom aircraft at apron:", NAD)
+    print("Num int aircraft at gates:", max_int_aircraft_at_gates)
+    print("Num int aircraft at apron:", NAI)
+
+    print("\nAircraft at domestic gates:", aircraft_at_dom_gates)
+    print("Aircraft at international gates:", aircraft_at_int_gates)
+    print("Aircraft at apron:", aircraft_at_int_apron | aircraft_at_dom_apron)
+
+    print(f'\nSanity Check: {len(aircraft_at_dom_gates)+len(aircraft_at_dom_apron)}={len(dom_aircraft)}')
+    print(f'Sanity Check: {len(aircraft_at_int_gates)+len(aircraft_at_int_apron)}={len(int_aircraft)}')
+    
 
 
 
