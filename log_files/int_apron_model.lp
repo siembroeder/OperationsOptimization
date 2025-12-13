@@ -8,9 +8,9 @@ Maximize
    + z_3_8 + z_4_6 + z_4_8
 Subject To
  flowUnitsSource: z_0_1 + z_0_2 + z_0_3 + z_0_4 + z_0_5 + z_0_6 + z_0_7
-   + z_0_8 <= 2
+   + z_0_8 <= 3
  flowUnitsSink: z_1_9 + z_2_9 + z_3_9 + z_4_9 + z_5_9 + z_6_9 + z_7_9
-   + z_8_9 <= 2
+   + z_8_9 <= 3
  flowConservationNode_1: - z_0_1 + z_1_9 + z_1_5 + z_1_6 + z_1_7 + z_1_8
    = 0
  oneOutgoingNode_1: z_1_9 + z_1_5 + z_1_6 + z_1_7 + z_1_8 <= 1

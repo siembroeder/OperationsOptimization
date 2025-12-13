@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from gurobipy import *
 
 def constructArcs(aircraft):
-
+    
     aircraft_list = list(aircraft.keys())
     n = len(aircraft_list)
     source = 0
