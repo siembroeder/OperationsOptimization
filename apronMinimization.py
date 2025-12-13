@@ -72,11 +72,10 @@ def optimizeApronAssignmentModel(arcs, gates, nodes, source, sink):
 def findAircraftDistribution(z,aircraft, arcs, source, model):
     num_paths = sum(z[source, j].X for (i, j) in arcs if i == source)
     
-    ZD = model.objVal
-    max_aircraft_at_gates = ZD - num_paths
-    NAD = len(aircraft) - max_aircraft_at_gates
+    ZD   = model.objVal
+    NA_x = ZD - num_paths
 
-    return max_aircraft_at_gates, NAD
+    return NA_x
 
 def findAssignedLocations(z, aircraft, arcs, nodes, node_to_aircraft):
     aircraft_at_gates = set()    
@@ -113,7 +112,6 @@ def findGateSchedules(z, arcs, source, sink, node_to_aircraft):
 
 
 def main():
-    # Currently only for domestic aircraft. Build to models, one for domestic one for international since they're independent.
 
     dom_gates = [1,2,3,'apron']
     dom_aircraft = {'dom1': (0,1),
@@ -126,7 +124,7 @@ def main():
                     'dom8': (2,3),
                     'dom9': (2,3)}
     
-    int_gates = [7,8,'apron']
+    int_gates = [7,8,9,'apron']
     int_aircraft = {'int1': (0,1),
                     'int2': (0,1),
                     'int3': (0,1),
@@ -141,10 +139,10 @@ def main():
 
     
     dom_apron_model, dom_z         = optimizeApronAssignmentModel(dom_arcs, dom_gates, dom_nodes, dom_source, dom_sink)
-    max_dom_aircraft_at_gates, NAD = findAircraftDistribution(dom_z, dom_aircraft, dom_arcs, dom_source, dom_apron_model)
+    NA_D = findAircraftDistribution(dom_z, dom_aircraft, dom_arcs, dom_source, dom_apron_model)
 
     int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
-    max_int_aircraft_at_gates, NAI = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
+    NA_I = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
 
 
     dom_apron_model.write('log_files/dom_apron_model.lp')
@@ -168,10 +166,11 @@ def main():
     for g, path in enumerate(int_gate_paths, start=1):
         print(f"Int_Gate {g}: {path}")
 
-    print("\nNum dom aircraft at gates:", max_dom_aircraft_at_gates)
-    print("Num dom aircraft at apron:", NAD)
-    print("Num int aircraft at gates:", max_int_aircraft_at_gates)
-    print("Num int aircraft at apron:", NAI)
+    print("\nNum dom aircraft at gates:", NA_D)
+    # print("Num dom aircraft at apron:", NAD)
+    print("Num int aircraft at gates:", NA_I)
+    # print("Num int aircraft at apron:", NAI)
+    print('Num aircraft at apron:', len(dom_aircraft)+len(int_aircraft) - NA_I - NA_D)
 
     print("\nAircraft at domestic gates:", aircraft_at_dom_gates)
     print("Aircraft at international gates:", aircraft_at_int_gates)
