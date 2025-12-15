@@ -11,9 +11,9 @@ The model is implemented using Python and gurobipy.
 ## Steps
 
 1. Determine the minimum aircraft to be send to the apron.
-We solve a maximum cost network flow model as formulated in section 4. of the paper.
+We solve a maximum cost network flow model as formulated in section 4. of the paper in apronMinimization.py.
 2. Determine the allocation of aircraft to gates.
-We solve a linearized, deterministic Aircraft Gate Assignment Problem (AGAP) as formulated in section 3. of the paper, minimizing the total travelling distance of all passengers.
+We solve a linearized, deterministic Aircraft Gate Assignment Problem (AGAP) as formulated in section 3. of the paper, minimizing the total travelling distance of all passengers, in walkingDistanceMinimization.py.
 3. Visualize the results.
 
 ## To be implemented
