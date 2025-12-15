@@ -24,8 +24,8 @@ def main():
     # Get all the parameters used in the model
     #################################################################################################################################
 
-    dom_aircraft = getAircraft(num = 5, ac_type = 'dom')
-    int_aircraft = getAircraft(num = 5, ac_type = 'int')
+    dom_aircraft = getAircraft(num = 100, ac_type = 'dom')
+    int_aircraft = getAircraft(num = 15, ac_type = 'int')
 
     dom_gates = getGates(num=5, gate_type='A')
     int_gates = getGates(num=5, gate_type='B')
@@ -35,7 +35,7 @@ def main():
     all_gates    = set(dom_gates) | set(int_gates)
     m            = len(all_gates) - 1
 
-    dom_turnovertime = 2
+    dom_turnovertime = 1
     int_turnovertime = 4
 
     dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime)
@@ -48,8 +48,8 @@ def main():
     
     p_ij = getTransferPassengers(all_aircraft, num_aircraft, all_aircraft_times)
 
-    nt_i = {i: np.random.randint(0,101) for i in all_aircraft}
-    e_i  = {i: np.random.randint(0,nt_i[i]+1) for i in all_aircraft}
+    nt_i = {i: np.random.randint(0,101) for i in all_aircraft} # number of non-transfer passengers on board aircraft i
+    e_i  = {i: np.random.randint(0,nt_i[i]+1) for i in all_aircraft} # split into fractions e_i and f_i, bit of a backwards way to generate these but oh well.
     f_i  = {i: nt_i[i] - e_i[i] for i in all_aircraft}
 
 
@@ -81,6 +81,7 @@ def main():
     m = Model('distance')
     m.params.LogFile = f'log_files/distance.log'
 
+    print('Constructing the variables')
     y = {}
     for i in range(num_aircraft - 1):
         for j in range(i+1,num_aircraft):
@@ -105,7 +106,7 @@ def main():
             x[ac, k] = m.addVar(vtype=GRB.BINARY, name=f"x_{ac}_{k}")
     m.update()
 
-
+    print('Constructing objective function')
     transfer_obj = quicksum( p_ij[all_aircraft[i]][all_aircraft[j]] * d_kl[k][l] * y[i,j,k,l]   # Same logic as y but compact
                                     for i in range(num_aircraft-1)
                                     for j in range(i+1, num_aircraft) 
@@ -126,6 +127,7 @@ def main():
     # Adding constraints
     # Constraints (5) and (7) are already satisfied by how we defined y and x
 
+    print('Constructing constraints')
     # Constraints (1), Assign each dom ac to exactly one dom gate
     for i in dom_aircraft:
         m.addConstr(quicksum(x[i,k] for k in dom_gates) == 1, name=f'ac_{i}_single_gate')
@@ -173,6 +175,7 @@ def main():
 
 
     m.update()
+    print('Writing model to .lp file')
     m.write('log_files/distance.lp')
 
 
@@ -196,12 +199,12 @@ def main():
 
             iter_log.append((iters, incumbent, bound, gap, runtime))
 
-
+    t3 = time.time()
     # Execute optimization
-    m.Params.TimeLimit = 1*60   # in seconds, first number in producs is minutes
+    m.Params.TimeLimit = 60*60   # in seconds, first number in producs is minutes
     m.optimize(mip_callback)
 
-    
+    t4 = time.time()
     
 
     
@@ -219,8 +222,8 @@ def main():
     for (ac, k), var in x.items():
         if var.X > 0.5:  # variable is binary, so >0.5 means assigned
             x_solution[ac] = k
-
-    plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times)
+    print(f'Optimizing took {t4-t3} seconds')
+    plot_gate_schedule_hours(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times)
 
 
 

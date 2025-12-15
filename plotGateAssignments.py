@@ -72,7 +72,7 @@ def plot_gate_schedule(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom
     
     plt.show()
 
-def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, apron='apron'):
+def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, apron='apron'):
     """
     Visualize aircraft schedule along the Y-axis with gates positioned vertically.
     Domestic gates: positive Y
@@ -101,6 +101,8 @@ def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coord
     apron_counter = {r: 0 for r in range(len(distinct_times) - 1)}
     apron_spacing = 0.8
 
+    total_pax_i = {i: e_i[i] + f_i[i] + sum(p_ij[j][i] for j in all_aircraft if j != i) for i in all_aircraft}
+
     # Plot aircraft blocks
     for ac in all_aircraft:
         gate = x_solution[ac]
@@ -119,6 +121,8 @@ def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coord
             else:
                 y = gate_y[gate]
 
+            
+
             ax.barh(y, 
                 end - start,       # width in hours
                 left=start,        # real time start
@@ -129,7 +133,7 @@ def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coord
             ax.text(
                 start + (end - start) / 2,
                 y,
-                str(sum(p_ij[ac][j] for j in all_aircraft)),
+                total_pax_i[ac],
                 va='center',
                 ha='center',
                 fontsize=8,
