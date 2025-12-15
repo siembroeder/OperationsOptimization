@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib
-from gurobipy import *
+from gurobipy import quicksum, GRB, Model
 import time
 import math
 
@@ -34,8 +34,11 @@ def main():
     all_gates    = set(dom_gates) | set(int_gates)
     m            = len(all_gates) - 1
 
-    dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft)
-    int_aircraft_times = getArrivalDepartureTimes(int_aircraft)
+    dom_turnovertime = 2
+    int_turnovertime = 4
+
+    dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime)
+    int_aircraft_times = getArrivalDepartureTimes(int_aircraft, int_turnovertime)
     all_aircraft_times = dom_aircraft_times | int_aircraft_times
 
     NA_star = findMinApron(dom_aircraft_times, int_aircraft_times, dom_gates, int_gates)
@@ -210,7 +213,7 @@ def main():
         if var.X > 0.5:  # variable is binary, so >0.5 means assigned
             x_solution[ac] = k
 
-    print(all_aircraft_times)
+    print(type(distinct_times))
     plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times)
 
 
@@ -257,7 +260,7 @@ def plot_gate_schedule(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom
                     y = gate_y[gate]
                 
                 ax.barh(y, 1, left=r, height=0.8, color=ac_color[ac], edgecolor='black')
-                ax.text(r + 0.5, y, sum(p_ij[ac][j] for j in all_aircraft),
+                ax.text(r + 0.5, y, str(sum(p_ij[ac][j] for j in all_aircraft)),
                         va='center', ha='center', fontsize=8, color='white')
     
     # Y-ticks for gates
@@ -334,7 +337,7 @@ def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coord
             ax.text(
                 start + (end - start) / 2,
                 y,
-                sum(p_ij[ac][j] for j in all_aircraft),
+                str(sum(p_ij[ac][j] for j in all_aircraft)),
                 va='center',
                 ha='center',
                 fontsize=8,
