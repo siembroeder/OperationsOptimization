@@ -2,36 +2,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib
 from gurobipy import *
 import time
 import math
 
-from apronMinimization import constructArcs, optimizeApronAssignmentModel, findAircraftDistribution
+from apronMinimization import constructArcs, optimizeApronAssignmentModel, findAircraftDistribution, findMinApron
+from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
 
-def findMinApron(dom_aircraft, int_aircraft, dom_gates, int_gates):
 
-    dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
-    int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)
 
-    
-    dom_apron_model, dom_z         = optimizeApronAssignmentModel(dom_arcs, dom_gates, dom_nodes, dom_source, dom_sink)
-    NA_D = findAircraftDistribution(dom_z, dom_aircraft, dom_arcs, dom_source, dom_apron_model)
-
-    int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
-    NA_I = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
-
-    NA_star = len(dom_aircraft)+len(int_aircraft) - NA_I - NA_D
-
-    return NA_star
-
-def generate_arrival_departure(aircraft_dict):
-    times = {}
-    for ac in aircraft_dict:
-        arrival = np.random.randint(0, 10)
-        duration = 4 # turnover time
-        departure = arrival + duration
-        times[ac] = (arrival, departure)
-    return times
 
 def main():
     np.random.seed(1)
@@ -41,48 +21,28 @@ def main():
     # int_aircraft = ['int1','int2','int3','int4']
     
 
-    dom_gates = []
-    int_gates = []
-    for i in range(1,6):
-        dom_gates.append('A'+str(i))
-    for j in range(1,6):
-        int_gates.append('B'+str(j))
-    
-    dom_gates.append('apron')
-    int_gates.append('apron')
-    
-    dom_aircraft = []    
-    int_aircraft = []
-    for i in range(1,21):
-        dom_aircraft.append('dom'+str(i))
 
-    for j in range(1,21):
-        int_aircraft.append('int'+str(j))
+
+    dom_aircraft = getAircraft(num = 5, ac_type = 'dom')
+    int_aircraft = getAircraft(num = 5, ac_type = 'int')
+
+    dom_gates = getGates(num=5, gate_type='A')
+    int_gates = getGates(num=5, gate_type='B')
     
     all_aircraft = dom_aircraft + int_aircraft
     num_aircraft = len(all_aircraft)
     all_gates    = set(dom_gates) | set(int_gates)
     m            = len(all_gates) - 1
 
-    dom_aircraft_times = generate_arrival_departure(dom_aircraft)
-    int_aircraft_times = generate_arrival_departure(int_aircraft)
+    dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft)
+    int_aircraft_times = getArrivalDepartureTimes(int_aircraft)
     all_aircraft_times = dom_aircraft_times | int_aircraft_times
 
     NA_star = findMinApron(dom_aircraft_times, int_aircraft_times, dom_gates, int_gates)
     print(f'\nMin num aircraft assigned to apron:', NA_star)
     
     
-    p_ij = {i: {j: 0 for j in all_aircraft} for i in all_aircraft}
-    for idx_i, i in enumerate(all_aircraft):
-        ai, di = all_aircraft_times[i]
-        for j in all_aircraft[idx_i + 1:]:
-            aj, dj = all_aircraft_times[j]
-
-            if ai < dj and aj < di:  # overlap
-                val = np.random.randint(0, int(200 / num_aircraft) + 1)
-                p_ij[i][j] = val
-                p_ij[j][i] = val  # enforce symmetry
-
+    p_ij = getTransferPassengers(all_aircraft, num_aircraft, all_aircraft_times)
 
     nt_i = {i: np.random.randint(0,101) for i in all_aircraft}
     e_i  = {i: np.random.randint(0,nt_i[i]+1) for i in all_aircraft}
@@ -94,40 +54,20 @@ def main():
     all_times = [t for ac_times in all_aircraft_times.values() for t in ac_times]
     distinct_times = sorted(set(all_times)) 
 
-    comp_ir = {}
-    for ac, (a, d) in all_aircraft_times.items():
-        comp_ir[ac] = []
-        for r in range(len(distinct_times)-1):
-            start, end = distinct_times[r], distinct_times[r+1]
-            comp_ir[ac].append(1 if (a < end and d > start) else 0)
-
-    g = {ac: 0 for ac in dom_aircraft}        # 0 = domestic
-    g.update({ac: 1 for ac in int_aircraft})  # 1 = international
-
+    comp_ir = getCompatabilityMatrix(all_aircraft_times, distinct_times)
+    
+    g = {ac: 0 for ac in dom_aircraft} | {ac: 1 for ac in int_aircraft}
+    
     gates_available_per_ac = {ac: (dom_gates if g[ac]==0 else int_gates) for ac in all_aircraft}
 
-    gate_coords = {}
-    for i,dom_gate in enumerate(dom_gates):
-        gate_coords[dom_gate] = (3+i*2, 0)
-    for j, int_gate in enumerate(int_gates):
-        gate_coords[int_gate] = (-3-j*2, 0)
-        
+    gate_coords = getGateCoords(dom_gates, int_gates)
     entrance_coords = (0,0)
 
-    d_kl = {}
-    ed_k = {}
-    for k in all_gates:
-        d_kl[k] = {}
-        xk, yk = gate_coords[k]
-        ed_k[k] = abs(xk - entrance_coords[0]) + abs(yk - entrance_coords[1])
-        for l in all_gates:
-            if k == l:
-                d_kl[k][l] = 0.0
-                continue
+    d_kl, ed_k = getGateDistances(entrance_coords, gate_coords, all_gates)
 
-            xl, yl = gate_coords[l]
-            
-            d_kl[k][l] = abs(xk - xl) + abs(yk - yl)
+
+
+
 
 
 
@@ -159,21 +99,22 @@ def main():
             x[ac, k] = m.addVar(vtype=GRB.BINARY, name=f"x_{ac}_{k}")
     m.update()
 
-    transfer_term = quicksum( p_ij[all_aircraft[i]][all_aircraft[j]] * d_kl[k][l] * y[i,j,k,l]   # Same logic as y but compact
+
+    transfer_obj = quicksum( p_ij[all_aircraft[i]][all_aircraft[j]] * d_kl[k][l] * y[i,j,k,l]   # Same logic as y but compact
                                     for i in range(num_aircraft-1)
                                     for j in range(i+1, num_aircraft) 
                                     for k in gates_available_per_ac[all_aircraft[i]]
                                     for l in gates_available_per_ac[all_aircraft[j]])
     
-    domestic_term = quicksum( (e_i[i] + f_i[i]) * ed_k[k] * x[i,k]
+    domestic_obj = quicksum( (e_i[i] + f_i[i]) * ed_k[k] * x[i,k]
                                 for i in dom_aircraft
                                 for k in dom_gates)
     
-    internat_term = quicksum( (e_i[i] + f_i[i]) * ed_k[k] * x[i,k]
+    internat_obj = quicksum( (e_i[i] + f_i[i]) * ed_k[k] * x[i,k]
                                 for i in int_aircraft
                                 for k in int_gates)
 
-    m.setObjective(transfer_term + domestic_term + internat_term, GRB.MINIMIZE)
+    m.setObjective(transfer_obj + domestic_obj + internat_obj, GRB.MINIMIZE)
     
 
     # Adding constraints
@@ -263,74 +204,17 @@ def main():
                 print(f"{ac} assigned to gate {k}, interval: {comp_ir[ac]}, total passengers: {sum(p_ij[ac][j] for j in all_aircraft)}")
 
 
-    # Extract sol`ution: map aircraft -> assigned gate
+    # Extract solution: map aircraft -> assigned gate
     x_solution = {}
     for (ac, k), var in x.items():
         if var.X > 0.5:  # variable is binary, so >0.5 means assigned
             x_solution[ac] = k
 
-    plot_gate_schedule_colored_stacked_apron(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates)
-    print(int_gates)
+    print(all_aircraft_times)
+    plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times)
 
 
-
-
-def plot_gate_schedule_colored(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, apron='apron'):
-    """
-    Visualize aircraft schedule along the Y-axis with gates positioned vertically.
-    Each aircraft has its own color.
-    """
-    fig, ax = plt.subplots(figsize=(12,6))
-    
-    # Assign a distinct color to each aircraft
-    num_aircraft = len(all_aircraft)
-    colors = cm.get_cmap('tab20', num_aircraft)
-    ac_color = {ac: colors(i) for i, ac in enumerate(all_aircraft)}
-    
-    # Map gates to Y-axis positions
-    gate_y = {}
-    for g in dom_gates:
-        gate_y[g] = gate_coords[g][0]  # Use X-coordinate from gate_coords for domestic gates
-    for g in int_gates:
-        gate_y[g] = -abs(gate_coords[g][0])  # Negative for international gates
-    gate_y[apron] = 10  # Fixed Y for apron (adjustable)
-    
-    distinct_times = len(next(iter(comp_ir.values())))
-    
-    # Plot aircraft blocks
-    for ac in all_aircraft:
-        gate = x_solution[ac]
-        y = gate_y[gate]
-        intervals = comp_ir[ac]
-        for r, occupied in enumerate(intervals):
-            if occupied:
-                ax.barh(y, 1, left=r, height=0.8, color=ac_color[ac], edgecolor='black')
-                ax.text(r + 0.5, y, sum(p_ij[ac][j] for j in all_aircraft), 
-                        va='center', ha='center', fontsize=8, color='black')
-    
-    # Y-ticks for gates
-    ax.set_yticks([gate_y[g] for g in dom_gates + int_gates + [apron]])
-    ax.set_yticklabels(dom_gates + int_gates + [apron])
-    
-    # Entrance at y=0
-    ax.axhline(0, color='red', linestyle='--', linewidth=2)
-    ax.text(-1, 0, 'Entrance', color='red', va='center', ha='right', fontsize=10)
-    
-    ax.set_xlabel("Time intervals")
-    ax.set_ylabel("Gate / Apron Positions (Y-axis)")
-    ax.set_title("Aircraft Gate Assignment Schedule with Colors")
-    
-    ax.set_ylim(-max(abs(gate_y[g]) for g in int_gates) - 1, max(gate_y.values()) + 1)
-    ax.set_xlim(0, distinct_times)
-    
-    # Optional: legend mapping aircraft to colors
-    handles = [plt.Rectangle((0,0),1,1, color=ac_color[ac]) for ac in all_aircraft]
-    ax.legend(handles, all_aircraft, bbox_to_anchor=(1.05,1), loc='upper left', title='Aircraft')
-    
-    plt.tight_layout()
-    plt.show()
-
-def plot_gate_schedule_colored_stacked_apron(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, apron='apron'):
+def plot_gate_schedule(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, apron='apron'):
     """
     Visualize aircraft schedule along the Y-axis with gates positioned vertically.
     Domestic gates: positive Y
@@ -340,7 +224,8 @@ def plot_gate_schedule_colored_stacked_apron(x_solution, comp_ir, p_ij, all_airc
     fig, ax = plt.subplots(figsize=(12, 6))
     
     # Assign colors per aircraft
-    colors = plt.cm.get_cmap('tab20', len(all_aircraft))
+    colors = matplotlib.colormaps['tab20']
+    # colors = plt.cm.get_cmap('tab20', len(all_aircraft))
     ac_color = {ac: colors(i) for i, ac in enumerate(all_aircraft)}
     
     # Map gates to Y-axis positions
@@ -352,10 +237,10 @@ def plot_gate_schedule_colored_stacked_apron(x_solution, comp_ir, p_ij, all_airc
     apron_base_y = 3+2*len(dom_gates) + 3  # Base Y for apron
     gate_y[apron] = apron_base_y
     
-    distinct_times = len(next(iter(comp_ir.values())))
+    # distinct_times = len(next(iter(comp_ir.values())))
     
     # Initialize apron counters per interval
-    apron_counter = {r: 0 for r in range(distinct_times)}
+    apron_counter = {r: 0 for r in range(len(distinct_times))}
     apron_spacing = 0.8  # vertical offset per overlapping aircraft
     
     # Plot aircraft blocks
@@ -376,22 +261,125 @@ def plot_gate_schedule_colored_stacked_apron(x_solution, comp_ir, p_ij, all_airc
                         va='center', ha='center', fontsize=8, color='white')
     
     # Y-ticks for gates
-    ax.set_yticks(
-        [gate_y[g] for g in dom_gates + int_gates] + [apron_base_y])
+    ax.set_yticks([gate_y[g] for g in dom_gates + int_gates] + [apron_base_y])
     ax.set_yticklabels(dom_gates + int_gates + [apron])
     
     # Entrance at y=0
     ax.axhline(0, color='red', linestyle='--', linewidth=2)
     ax.text(-1, 0, 'Entrance', color='red', va='center', ha='right', fontsize=10)
     
-    ax.set_xlabel("Time intervals")
+    # ax.set_xlabel("Time intervals")
     ax.set_ylabel("Gate / Apron Positions (Y-axis)")
     ax.set_title("Aircraft Gate Assignment Schedule")
     
     ax.set_ylim((-max(abs(gate_y[g]) for g in int_gates if g !='apron') - 1, apron_base_y + max(apron_counter.values()) * apron_spacing + 1))
-    ax.set_xlim(0, distinct_times)
+    ax.set_xlim(0, len(distinct_times))
     
     plt.show()
+
+def plot_gate_schedule_hours(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, apron='apron'):
+    """
+    Visualize aircraft schedule along the Y-axis with gates positioned vertically.
+    Domestic gates: positive Y
+    International gates: negative Y
+    Apron: stacked vertically if multiple aircraft overlap
+    X-axis shows real time (hours)
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Assign colors per aircraft
+    colors = matplotlib.colormaps['tab20']
+    cycle = 15
+    ac_color = {ac: colors(i % cycle) for i, ac in enumerate(all_aircraft)}
+
+    # Map gates to Y-axis positions
+    gate_y = {}
+    for g in dom_gates:
+        gate_y[g] = gate_coords[g][0]  # positive Y for domestic
+    for g in int_gates:
+        gate_y[g] = -abs(gate_coords[g][0])  # negative Y for international
+
+    apron_base_y = 3 + 2 * len(dom_gates) + 3
+    gate_y[apron] = apron_base_y
+
+    # Initialize apron counters per interval
+    apron_counter = {r: 0 for r in range(len(distinct_times) - 1)}
+    apron_spacing = 0.8
+
+    # Plot aircraft blocks
+    for ac in all_aircraft:
+        gate = x_solution[ac]
+        intervals = comp_ir[ac]
+
+        for r, occupied in enumerate(intervals):
+            if not occupied:
+                continue
+
+            start = distinct_times[r]
+            end = distinct_times[r + 1]
+
+            if gate == apron:
+                y = apron_base_y + apron_counter[r] * apron_spacing
+                apron_counter[r] += 1
+            else:
+                y = gate_y[gate]
+
+            ax.barh(y, 
+                end - start,       # width in hours
+                left=start,        # real time start
+                height=0.8,
+                color=ac_color[ac],
+                edgecolor='black')
+
+            ax.text(
+                start + (end - start) / 2,
+                y,
+                sum(p_ij[ac][j] for j in all_aircraft),
+                va='center',
+                ha='center',
+                fontsize=8,
+                color='white')
+
+    # Y-ticks for gates and apron
+    ax.set_yticks([gate_y[g] for g in dom_gates + int_gates] + [apron_base_y])
+    ax.set_yticklabels(dom_gates + int_gates + [apron])
+
+    # Entrance at y = 0
+    ax.axhline(0, color='red', linestyle='--', linewidth=2)
+    ax.text(-1, 0, 'Entrance', color='red', va='center', ha='right', fontsize=10)
+
+    # Axes formatting
+    ax.set_xlabel("Time (hours)")
+    # ax.set_ylabel("Gate / Apron Positions (Y-axis)")
+    ax.set_title("Aircraft Gate Assignment Schedule")
+
+    ax.set_xlim(0, max(distinct_times))
+    ax.set_xticks(range(0, max(distinct_times) + 1))
+
+    ax.set_ylim(
+        -max(abs(gate_y[g]) for g in int_gates) - 1,
+        apron_base_y + max(apron_counter.values(), default=0) * apron_spacing + 1
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

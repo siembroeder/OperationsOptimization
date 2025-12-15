@@ -110,6 +110,23 @@ def findGateSchedules(z, arcs, source, sink, node_to_aircraft):
 
     return gate_paths
 
+def findMinApron(dom_aircraft, int_aircraft, dom_gates, int_gates):
+
+    dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
+    int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)
+
+    
+    dom_apron_model, dom_z         = optimizeApronAssignmentModel(dom_arcs, dom_gates, dom_nodes, dom_source, dom_sink)
+    NA_D = findAircraftDistribution(dom_z, dom_aircraft, dom_arcs, dom_source, dom_apron_model)
+
+    int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
+    NA_I = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
+
+    NA_star = len(dom_aircraft)+len(int_aircraft) - NA_I - NA_D
+
+    return NA_star
+
+
 
 def main():
 
@@ -134,6 +151,9 @@ def main():
                     'int7': (1,3),
                     'int8': (2,3)}
     
+
+    # This is really just findMinApron() but with access to the local variables
+    #######################################################################################################################################################
     dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
     int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)
 
@@ -154,7 +174,7 @@ def main():
 
     aircraft_at_dom_gates, aircraft_at_dom_apron = findAssignedLocations(dom_z, dom_aircraft, dom_arcs, dom_nodes, dom_node_to_aircraft)
     aircraft_at_int_gates, aircraft_at_int_apron = findAssignedLocations(int_z, int_aircraft, int_arcs, int_nodes, int_node_to_aircraft)
-
+    #######################################################################################################################################################
 
 
     print('')
