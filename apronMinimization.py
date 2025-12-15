@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from gurobipy import *
+from gurobipy import quicksum, GRB, Model
 
-def constructArcs(aircraft):
+def constructArcs(aircraft:dict):
     
     aircraft_list = list(aircraft.keys())
     n = len(aircraft_list)
@@ -37,7 +37,7 @@ def constructArcs(aircraft):
 
     return arcs, nodes, source, sink
 
-def optimizeApronAssignmentModel(arcs, gates, nodes, source, sink):
+def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, sink:int):
     apron_model = Model('Apron')
     apron_model.params.LogFile = f'log_files/apron.log'
 
@@ -67,9 +67,9 @@ def optimizeApronAssignmentModel(arcs, gates, nodes, source, sink):
         if choice == 'y':
             return apron_model, z
         else:
-            print('Exiting')
+            raise RuntimeError('Model not optimal, exiting')
 
-def findAircraftDistribution(z,aircraft, arcs, source, model):
+def findAircraftDistribution(z:dict,aircraft:dict, arcs:list, source:int, model:Model):
     num_paths = sum(z[source, j].X for (i, j) in arcs if i == source)
     
     ZD   = model.objVal
@@ -77,7 +77,7 @@ def findAircraftDistribution(z,aircraft, arcs, source, model):
 
     return NA_x
 
-def findAssignedLocations(z, aircraft, arcs, nodes, node_to_aircraft):
+def findAssignedLocations(z:dict, aircraft:dict, arcs:list, nodes:dict, node_to_aircraft:dict):
     aircraft_at_gates = set()    
     for k in nodes.values():
         if sum(z[k, j].X for (i, j) in arcs if i == k) == 1.0:
@@ -87,7 +87,7 @@ def findAssignedLocations(z, aircraft, arcs, nodes, node_to_aircraft):
 
     return aircraft_at_gates, aircraft_at_apron
 
-def findGateSchedules(z, arcs, source, sink, node_to_aircraft):
+def findGateSchedules(z:dict, arcs:list, source:int, sink:int, node_to_aircraft:dict):
     # Extract gate schedules
     path_starts = [j for (i, j) in arcs if i == source and z[i, j].X == 1.0]
 
@@ -110,7 +110,7 @@ def findGateSchedules(z, arcs, source, sink, node_to_aircraft):
 
     return gate_paths
 
-def findMinApron(dom_aircraft, int_aircraft, dom_gates, int_gates):
+def findMinApron(dom_aircraft:dict, int_aircraft:dict, dom_gates:list, int_gates:list):
 
     dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
     int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)
