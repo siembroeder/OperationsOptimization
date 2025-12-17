@@ -39,6 +39,7 @@ def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_time
 
             if ai < dj and aj < di:  # overlap
                 val = np.random.randint(0, int(200 / num_aircraft) + 1)
+                # val = np.random.randint(0, int(200) + 1)
                 p_ij[i][j] = val
                 p_ij[j][i] = val  # enforce symmetry
     return p_ij
@@ -95,13 +96,13 @@ def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set) -> 
             d_kl[k][l] = abs(xk - xl) + abs(yk - yl)
     return d_kl, ed_k
 
-def getArrivalDepartureTimes(aircraft:list, turnovertime:float) -> Dict[str, tuple[int, int]]:
+def getArrivalDepartureTimes(aircraft:list, turnovertime:float, window:tuple) -> Dict[str, tuple[int, int]]:
     '''
     returns dict with {ac: (arrivaltime, departuretime), ...}
     '''
     times = {}
     for ac in aircraft:
-        arrival = np.random.randint(6, 22) # only operate planes in window between 06:00 and 21:00+turnovertime
+        arrival = np.random.randint(window[0], window[1]) # only operate planes in window between 06:00 and 21:00+turnovertime
         departure = arrival + turnovertime
         times[ac] = (arrival, departure)
     return times
