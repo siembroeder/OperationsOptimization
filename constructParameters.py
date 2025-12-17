@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import gurobipy
+from typing import Dict, List
 
 
-def getAircraft(num:int = 1, ac_type:str = ''):
+def getAircraft(num:int = 1, ac_type:str = '') -> List[str]:
     '''
     Returns list of aircraft
     eg if ac_type is "dom", returns ["dom1", "dom2", "dom3",...,"domx"] with x == num
@@ -14,7 +15,7 @@ def getAircraft(num:int = 1, ac_type:str = ''):
         aircraft.append(ac_type+str(i))
     return aircraft
 
-def getGates(num:int = 3, gate_type:str = ''):
+def getGates(num:int = 3, gate_type:str = '') -> List[str]:
     '''
     Returns list of gates
     eg if ac_type is "A", returns ["A1", "A2", "A3",...,"Ax", "apron"] with x == num
@@ -25,7 +26,7 @@ def getGates(num:int = 3, gate_type:str = ''):
     gates.append('apron')
     return gates
     
-def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_times:dict):
+def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_times:dict) -> Dict[str, Dict[str, int]]:
     '''
     Returns symmetric p_ij matrix, number of pax transferring from aircraft i to aircraft j
     This is the same simplification used in the paper
@@ -42,7 +43,7 @@ def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_time
                 p_ij[j][i] = val  # enforce symmetry
     return p_ij
 
-def getCompatabilityMatrix(all_aircraft_times:dict, distinct_times:list):
+def getCompatabilityMatrix(all_aircraft_times:dict, distinct_times:list) -> Dict[str, List[int]]:
     '''
     returns matrix of aircraft vs distinct time intervals
     comp[i][r] = 1 if aircraft i is in the airport at interval [r,r+1)
@@ -56,7 +57,7 @@ def getCompatabilityMatrix(all_aircraft_times:dict, distinct_times:list):
             comp_ir[ac].append(1 if (a < end and d > start) else 0)
     return comp_ir
 
-def getGateCoords(dom_gates:list, int_gates:list):
+def getGateCoords(dom_gates:list, int_gates:list) -> Dict[str, tuple[int, int]]:
     '''
     returns (x,y) coordinates of all gates and the apron
     
@@ -73,7 +74,7 @@ def getGateCoords(dom_gates:list, int_gates:list):
     gate_coords['apron'] = (0,30) # overwrite with some set value that's far away
     return gate_coords
 
-def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set):
+def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set) -> tuple[Dict[str, Dict[str, int]], Dict[str, int]]:
     '''
     returns d_kl, the dict with distances between gates k and l
             ed_k, the distance between gate k and the entrance
@@ -94,7 +95,7 @@ def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set):
             d_kl[k][l] = abs(xk - xl) + abs(yk - yl)
     return d_kl, ed_k
 
-def getArrivalDepartureTimes(aircraft:list, turnovertime:float):
+def getArrivalDepartureTimes(aircraft:list, turnovertime:float) -> Dict[str, tuple[int, int]]:
     '''
     returns dict with {ac: (arrivaltime, departuretime), ...}
     '''

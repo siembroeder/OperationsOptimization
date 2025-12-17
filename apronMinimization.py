@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from gurobipy import quicksum, GRB, Model
+from typing import Dict, List
 
-def constructArcs(aircraft:dict):
+def constructArcs(aircraft:dict) -> tuple[List, Dict, int, int]:
     
     aircraft_list = list(aircraft.keys())
     n = len(aircraft_list)
@@ -37,7 +38,7 @@ def constructArcs(aircraft:dict):
 
     return arcs, nodes, source, sink
 
-def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, sink:int):
+def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, sink:int) -> tuple[Model, Dict]:
     apron_model = Model('Apron')
     apron_model.params.LogFile = f'log_files/apron.log'
 
@@ -69,7 +70,7 @@ def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, 
         else:
             raise RuntimeError('Model not optimal, exiting')
 
-def findAircraftDistribution(z:dict,aircraft:dict, arcs:list, source:int, model:Model):
+def findAircraftDistribution(z:dict,aircraft:dict, arcs:list, source:int, model:Model) -> int:
     num_paths = sum(z[source, j].X for (i, j) in arcs if i == source)
     
     ZD   = model.objVal
@@ -77,7 +78,7 @@ def findAircraftDistribution(z:dict,aircraft:dict, arcs:list, source:int, model:
 
     return NA_x
 
-def findAssignedLocations(z:dict, aircraft:dict, arcs:list, nodes:dict, node_to_aircraft:dict):
+def findAssignedLocations(z:dict, aircraft:dict, arcs:list, nodes:dict, node_to_aircraft:dict) -> tuple[set, set]:
     aircraft_at_gates = set()    
     for k in nodes.values():
         if sum(z[k, j].X for (i, j) in arcs if i == k) == 1.0:
@@ -87,7 +88,7 @@ def findAssignedLocations(z:dict, aircraft:dict, arcs:list, nodes:dict, node_to_
 
     return aircraft_at_gates, aircraft_at_apron
 
-def findGateSchedules(z:dict, arcs:list, source:int, sink:int, node_to_aircraft:dict):
+def findGateSchedules(z:dict, arcs:list, source:int, sink:int, node_to_aircraft:dict) -> List:
     # Extract gate schedules
     path_starts = [j for (i, j) in arcs if i == source and z[i, j].X == 1.0]
 
@@ -110,7 +111,7 @@ def findGateSchedules(z:dict, arcs:list, source:int, sink:int, node_to_aircraft:
 
     return gate_paths
 
-def findMinApron(dom_aircraft:dict, int_aircraft:dict, dom_gates:list, int_gates:list):
+def findMinApron(dom_aircraft:dict, int_aircraft:dict, dom_gates:list, int_gates:list) -> int:
 
     dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
     int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)

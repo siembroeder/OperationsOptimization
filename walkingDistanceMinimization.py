@@ -9,7 +9,7 @@ import math
 
 from apronMinimization import findMinApron
 from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
-from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours
+from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct
 
 
 
@@ -25,17 +25,17 @@ def main():
     #################################################################################################################################
 
     dom_aircraft = getAircraft(num = 100, ac_type = 'dom')
-    int_aircraft = getAircraft(num = 15, ac_type = 'int')
+    int_aircraft = getAircraft(num = 50, ac_type = 'int')
 
-    dom_gates = getGates(num=5, gate_type='A')
-    int_gates = getGates(num=5, gate_type='B')
+    dom_gates = getGates(num=15, gate_type='A')
+    int_gates = getGates(num=15, gate_type='B')
     
     all_aircraft = dom_aircraft + int_aircraft
     num_aircraft = len(all_aircraft)
     all_gates    = set(dom_gates) | set(int_gates)
     m            = len(all_gates) - 1
 
-    dom_turnovertime = 1
+    dom_turnovertime = 3
     int_turnovertime = 4
 
     dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime)
@@ -223,7 +223,7 @@ def main():
         if var.X > 0.5:  # variable is binary, so >0.5 means assigned
             x_solution[ac] = k
     print(f'Optimizing took {t4-t3} seconds')
-    plot_gate_schedule_hours(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times)
+    plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
 
 
 
