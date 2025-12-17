@@ -6,10 +6,11 @@ import matplotlib
 from gurobipy import quicksum, GRB, Model
 import time
 import math
+from brokenaxes import brokenaxes
 
 from apronMinimization import findMinApron
 from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
-from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct
+from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_gate_schedule_hours_distinct_broken
 
 
 
@@ -24,22 +25,23 @@ def main():
     # Get all the parameters used in the model
     #################################################################################################################################
 
-    dom_aircraft = getAircraft(num = 100, ac_type = 'dom')
-    int_aircraft = getAircraft(num = 50, ac_type = 'int')
+    dom_aircraft = getAircraft(num = 10, ac_type = 'dom')
+    int_aircraft = getAircraft(num = 10, ac_type = 'int')
 
-    dom_gates = getGates(num=15, gate_type='A')
-    int_gates = getGates(num=15, gate_type='B')
+    dom_gates = getGates(num=4, gate_type='A')
+    int_gates = getGates(num=4, gate_type='B')
     
     all_aircraft = dom_aircraft + int_aircraft
     num_aircraft = len(all_aircraft)
     all_gates    = set(dom_gates) | set(int_gates)
     m            = len(all_gates) - 1
 
-    dom_turnovertime = 3
-    int_turnovertime = 4
+    dom_turnovertime = 1
+    int_turnovertime = 1.5
+    airport_operating_window = (13,17)
 
-    dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime)
-    int_aircraft_times = getArrivalDepartureTimes(int_aircraft, int_turnovertime)
+    dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime, window = airport_operating_window)
+    int_aircraft_times = getArrivalDepartureTimes(int_aircraft, int_turnovertime, window = airport_operating_window)
     all_aircraft_times = dom_aircraft_times | int_aircraft_times
 
     NA_star = findMinApron(dom_aircraft_times, int_aircraft_times, dom_gates, int_gates)
@@ -96,7 +98,7 @@ def main():
 
             for k in gates_i:
                 for l in gates_j:
-                    y[i,j,k,l] = m.addVar(lb=0.0, vtype=GRB.BINARY, name=f'y_{i}_{j}_{k}_{l}')
+                    y[i,j,k,l] = m.addVar(lb=0.0, vtype=GRB.CONTINUOUS, name=f'y_{i}_{j}_{k}_{l}')
 
 
     x = {}
@@ -223,8 +225,9 @@ def main():
         if var.X > 0.5:  # variable is binary, so >0.5 means assigned
             x_solution[ac] = k
     print(f'Optimizing took {t4-t3} seconds')
-    plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
+    # plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
 
+    plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
 
 
 
