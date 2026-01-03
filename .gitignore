@@ -1,6 +1,7 @@
 
 # Custom Python.gitignore file
 *.lp
+log_files/
 
 
 
