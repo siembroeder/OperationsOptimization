@@ -6,7 +6,6 @@ import matplotlib
 from gurobipy import quicksum, GRB, Model
 import time
 import math
-from brokenaxes import brokenaxes
 
 from apronMinimization import findMinApron
 from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
@@ -15,7 +14,7 @@ from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, pl
 
 
 def main():
-    np.random.seed(1)
+    np.random.seed(6)
     # dom_gates    = ['A1','A2','A3','apron']
     # dom_aircraft = ['dom1','dom2','dom3', 'dom4', 'dom5', 'dom6', 'dom7', 'dom8', 'dom9', 'dom10', 'dom11', 'dom12']
     # int_gates    = ['B1','B2','B3','apron']    
@@ -25,11 +24,14 @@ def main():
     # Get all the parameters used in the model
     #################################################################################################################################
 
-    dom_aircraft = getAircraft(num = 10, ac_type = 'dom')
-    int_aircraft = getAircraft(num = 10, ac_type = 'int')
+    # file_postfix = f'Graphs/TimetableNoOverlap.png'
+    file_postfix = None
 
-    dom_gates = getGates(num=4, gate_type='A')
-    int_gates = getGates(num=4, gate_type='B')
+    dom_aircraft = getAircraft(num = 3, ac_type = 'dom')
+    int_aircraft = getAircraft(num = 0, ac_type = 'int')
+
+    dom_gates = getGates(num=2, gate_type='A')
+    int_gates = getGates(num=0, gate_type='B')
     
     all_aircraft = dom_aircraft + int_aircraft
     num_aircraft = len(all_aircraft)
@@ -38,7 +40,7 @@ def main():
 
     dom_turnovertime = 1
     int_turnovertime = 1.5
-    airport_operating_window = (13,17)
+    airport_operating_window = (13,16)
 
     dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime, window = airport_operating_window)
     int_aircraft_times = getArrivalDepartureTimes(int_aircraft, int_turnovertime, window = airport_operating_window)
@@ -227,7 +229,8 @@ def main():
     print(f'Optimizing took {t4-t3} seconds')
     # plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
 
-    plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
+    plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft,
+                                            fig_save_path = file_postfix)
 
 
 

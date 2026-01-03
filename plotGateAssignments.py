@@ -8,7 +8,6 @@ import matplotlib
 from gurobipy import quicksum, GRB, Model
 import time
 import math
-from brokenaxes import brokenaxes
 
 def plot_gate_schedule(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, apron='apron'):
     """
@@ -296,7 +295,8 @@ def plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_a
 
 
 
-def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, dom_aircraft, int_aircraft, apron='apron'):
+def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, dom_aircraft, int_aircraft, 
+                                             apron='apron', fig_save_path=None):
     """
     Visualize aircraft schedule along the Y-axis with gates positioned vertically.
     Domestic gates: positive Y
@@ -343,7 +343,7 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
     y_apron_max = apron_base_y + max(apron_counter.values(), default=0) * apron_spacing + 1
 
 
-    total_pax_i = {i: e_i[i] + f_i[i] + sum(p_ij[j][i] for j in all_aircraft if j != i) for i in all_aircraft}
+    total_pax_i = {i: e_i[i] + f_i[i] + sum(p_ij[j][i] for j in all_aircraft if j != i) + sum(p_ij[i][j] for j in all_aircraft) for i in all_aircraft}
 
     # Plot aircraft blocks
     for ac in all_aircraft:
@@ -374,17 +374,20 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
                 height=1.05,
                 color=ac_color[ac],
                 edgecolor='black',
-                hatch=None if is_domestic else '////'
+                hatch=None if is_domestic else '////',
+                zorder=3
             )
 
+            # Print total pax in the block
             target_ax.text(
                 start + (end - start) / 2,
                 y,
                 total_pax_i[ac],
                 va='center',
                 ha='center',
-                fontsize=10,
-                color='white'
+                fontsize=14,
+                color='white',
+                zorder=4
             )
 
     ax_low.set_ylim(-max((abs(gate_y[g]) for g in int_gates if g != 'apron'), default=0) - 1, y_gate_max + 1)
@@ -406,10 +409,10 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
     ax_high.plot((-d, +d), (0, 0), transform=ax_high.transAxes, color='k', clip_on=False)
 
 
-    ticks = np.arange(int(min(distinct_times)), int(max(distinct_times) + 1), 0.5)
+    ticks = np.arange(int(min(distinct_times)), int(max(distinct_times) + 2), 1)
     ax_low.set_xlim(ticks[0] - 0.1, ticks[-1] + 0.1)
     
-    ticks = list(range(int(min(distinct_times)), int(max(distinct_times) + 1)))
+    ticks = list(range(int(min(distinct_times)) - 1, int(max(distinct_times) + 2)))
     ax_low.set_xticks(ticks)
     ax_low.set_xticklabels([str((t-1) % 24 + 1) for t in ticks])
     
@@ -423,11 +426,16 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
 
     ax_high.spines['bottom'].set_visible(False)
     ax_high.spines['right'].set_visible(False)
-    ax_high.spines['top'].set_visible(False)
+    # ax_high.spines['top'].set_visible(False)
     ax_high.tick_params(left=True, right=False, top=False, bottom=False)
 
+    ax_high.grid(zorder=0)
+    ax_low.grid(zorder=0)
+    # plt.tight_layout()
+    
+    if fig_save_path:
+        plt.savefig(fig_save_path, dpi=150)
 
-    plt.tight_layout()
     plt.show()
 
 
