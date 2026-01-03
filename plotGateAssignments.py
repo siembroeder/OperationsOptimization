@@ -296,7 +296,7 @@ def plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_a
 
 
 def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, dom_aircraft, int_aircraft, 
-                                             apron='apron', fig_save_path=None):
+                                             apron='apron', fig_save_path=None, dom_tat = 1, int_tat=1.5):
     """
     Visualize aircraft schedule along the Y-axis with gates positioned vertically.
     Domestic gates: positive Y
@@ -343,7 +343,8 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
     y_apron_max = apron_base_y + max(apron_counter.values(), default=0) * apron_spacing + 1
 
 
-    total_pax_i = {i: e_i[i] + f_i[i] + sum(p_ij[j][i] for j in all_aircraft if j != i) + sum(p_ij[i][j] for j in all_aircraft) for i in all_aircraft}
+    total_pax_i   = {i: e_i[i] + f_i[i] + sum(p_ij[j][i] for j in all_aircraft if j != i) + sum(p_ij[i][j] for j in all_aircraft) for i in all_aircraft}
+    plot_ac_flag = {i: 1 for i in all_aircraft}  
 
     # Plot aircraft blocks
     for ac in all_aircraft:
@@ -351,6 +352,8 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
         intervals = comp_ir[ac]
 
         is_domestic = ac in dom_aircraft
+
+        tat = dom_tat if is_domestic else int_tat
 
         for r, occupied in enumerate(intervals):
             if not occupied:
@@ -367,28 +370,31 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
 
             target_ax = ax_high if y >= y_apron_min else ax_low
 
-            target_ax.barh(
-                y,
-                end - start,
-                left=start,
-                height=1.05,
-                color=ac_color[ac],
-                edgecolor='black',
-                hatch=None if is_domestic else '////',
-                zorder=3
-            )
+            if plot_ac_flag[ac] ==1:
+                target_ax.barh(
+                    y,
+                    tat, #end - start,
+                    left=start,
+                    height=1.05,
+                    color=ac_color[ac],
+                    edgecolor='black',
+                    hatch=None if is_domestic else '////',
+                    zorder=3
+                )
 
-            # Print total pax in the block
-            target_ax.text(
-                start + (end - start) / 2,
-                y,
-                total_pax_i[ac],
-                va='center',
-                ha='center',
-                fontsize=14,
-                color='white',
-                zorder=4
-            )
+            
+                # Print total pax in the block
+                target_ax.text(
+                    start + tat/2,#(end - start) / 2,
+                    y-0.025,
+                    total_pax_i[ac],
+                    va='center',
+                    ha='center',
+                    fontsize=12,
+                    color='white',
+                    zorder=4
+                )
+                plot_ac_flag[ac] -= 1
 
     ax_low.set_ylim(-max((abs(gate_y[g]) for g in int_gates if g != 'apron'), default=0) - 1, y_gate_max + 1)
     ax_high.set_ylim(y_apron_min, apron_base_y + max(apron_counter.values(), default=0) * apron_spacing + 0.1)
@@ -432,7 +438,7 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
     ax_high.grid(zorder=0)
     ax_low.grid(zorder=0)
     # plt.tight_layout()
-    
+
     if fig_save_path:
         plt.savefig(fig_save_path, dpi=150)
 
