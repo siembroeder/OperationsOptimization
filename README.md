@@ -20,3 +20,7 @@ We solve a linearized, deterministic Aircraft Gate Assignment Problem (AGAP) as 
 
 - More complex geometry for the airport layout. Such as the Frankfurt or Munich airport.
 - Sensitivity analysis on the parameters.
+
+## uv venv created through:
+uv venv
+source .venv/bin/activate
