@@ -370,7 +370,7 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
 
             target_ax = ax_high if y >= y_apron_min else ax_low
 
-            if plot_ac_flag[ac] ==1:
+            if plot_ac_flag[ac] ==1 and target_ax == ax_low:
                 target_ax.barh(
                     y,
                     tat, #end - start,
@@ -395,6 +395,30 @@ def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i
                     zorder=4
                 )
                 plot_ac_flag[ac] -= 1
+
+            elif target_ax == ax_high: 
+                target_ax.barh(
+                y,
+                end - start,
+                left=start,
+                height=1.05,
+                color=ac_color[ac],
+                edgecolor='black',
+                hatch=None if is_domestic else '////',
+                zorder=3
+                )
+
+                 # Print total pax in the block
+                target_ax.text(
+                    start + (end - start) / 2,
+                    y,
+                    total_pax_i[ac],
+                    va='center',
+                    ha='center',
+                    fontsize=14,
+                    color='white',
+                    zorder=4
+                    )
 
     ax_low.set_ylim(-max((abs(gate_y[g]) for g in int_gates if g != 'apron'), default=0) - 1, y_gate_max + 1)
     ax_high.set_ylim(y_apron_min, apron_base_y + max(apron_counter.values(), default=0) * apron_spacing + 0.1)

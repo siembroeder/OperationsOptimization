@@ -41,7 +41,7 @@ def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_time
                 val = np.random.randint(0, int(200 / num_aircraft) + 1)
                 # val = np.random.randint(0, int(200) + 1)
                 p_ij[i][j] = val
-                p_ij[j][i] = val  # enforce symmetry
+                # p_ij[j][i] = val  # enforce symmetry
     return p_ij
 
 def getCompatabilityMatrix(all_aircraft_times:dict, distinct_times:list) -> Dict[str, List[int]]:
