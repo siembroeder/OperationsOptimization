@@ -2,6 +2,9 @@
 # Custom Python.gitignore file
 *.lp
 log_files/
+Graphs/
+*.png
+*.csv
 
 
 

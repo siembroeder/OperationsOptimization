@@ -27,6 +27,13 @@ def main():
     # file_postfix = f'Graphs/TimetableVerificationOnePlane.png'
     file_postfix = None
 
+    dom_turnovertime = 1
+    int_turnovertime = 1.5
+    airport_operating_window = (13,14)
+    time_discretization = 1. # in hours
+    entrance_coords = (0,0)
+
+
     dom_aircraft = getAircraft(num = 1, ac_type = 'dom')
     int_aircraft = getAircraft(num = 0, ac_type = 'int')
 
@@ -37,11 +44,6 @@ def main():
     num_aircraft = len(all_aircraft)
     all_gates    = set(dom_gates) | set(int_gates)
     m            = len(all_gates) - 1
-
-    dom_turnovertime = 1
-    int_turnovertime = 1.5
-    airport_operating_window = (13,14)
-    time_discretization = 1. # in hours
 
     dom_aircraft_times = getArrivalDepartureTimes(dom_aircraft, dom_turnovertime, window = airport_operating_window, time_discretization = time_discretization)
     int_aircraft_times = getArrivalDepartureTimes(int_aircraft, int_turnovertime, window = airport_operating_window, time_discretization = time_discretization)
@@ -70,7 +72,6 @@ def main():
     gates_available_per_ac = {ac: (dom_gates if g[ac]==0 else int_gates) for ac in all_aircraft}
 
     gate_coords = getGateCoords(dom_gates, int_gates)
-    entrance_coords = (0,0)
 
     d_kl, ed_k = getGateDistances(entrance_coords, gate_coords, all_gates)
 
@@ -86,8 +87,6 @@ def main():
     m.update()
     print('Writing model to .lp file')
     m.write('log_files/distance.lp')
-
-
 
     t2 = time.time()
     print(f'Constructing model takes {t2-t1} seconds')
@@ -136,35 +135,6 @@ def main():
 
     plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft,
                                             fig_save_path = file_postfix)
-
-    print(e_i)
-    print()
-    print(f_i)
-    print()
-    print(p_ij)
-    print()
-    print(ed_k)
-    print()
-    print(d_kl)
-
-    print("\nNonzero y values at optimality:")
-    for (i, j, k, l), var in y.items():
-        ac_i = all_aircraft[i]
-        ac_j = all_aircraft[j]
-        print(f"y[{ac_i}, {ac_j}, {k}, {l}] = {var.X}")
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
