@@ -171,16 +171,55 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
     
     total_runs = len(combinations) * n_replications
     
+    # # Run experiments
+    # results = []
+    # for run_idx, combo in enumerate(combinations, 1):
+    #     params = base_config.copy()
+    #     for param_name, param_value in zip(varying_params, combo):
+    #         params[param_name] = param_value
+        
+    #     for rep in range(n_replications):
+    #         print(f"\nRun {(run_idx-1)*n_replications + rep + 1}/{total_runs}: "
+    #               f"{dict(zip(varying_params, combo))}, rep {rep+1}")
+            
+    #         params['seed'] = rep
+    #         problem = GateAssignmentProblem(**params)
+    #         result = problem.solve(time_limit=time_limit, verbose=False)
+            
+    #         result_dict = {
+    #             'replication': rep,
+    #             **{p: v for p, v in zip(varying_params, combo)},
+    #             'objective': result['objective'],
+    #             'gap': result['gap'],
+    #             'build_time': result['build_time'],
+    #             'solve_time': result['solve_time'],
+    #             'total_time': result['total_time'],
+    #             'status': result['status']
+    #         }
+    #         results.append(result_dict)
+            
+    #         obj_str = f"{result['objective']:.2f}" if result['objective'] else 'N/A'
+    #         print(f"  Objective: {obj_str}, Time: {result['total_time']:.2f}s")
+    
+    # # Save and return results
+    # df = pd.DataFrame(results)
+    # df.to_csv(output_file, index=False)
+    # print(f"\nResults saved to {output_file}")
+
+
+
     # Run experiments
     results = []
+
     for run_idx, combo in enumerate(combinations, 1):
         params = base_config.copy()
         for param_name, param_value in zip(varying_params, combo):
             params[param_name] = param_value
         
+        # Store results for THIS SPECIFIC parameter combination
+        replication_results = []
+        
         for rep in range(n_replications):
-            print(f"\nRun {(run_idx-1)*n_replications + rep + 1}/{total_runs}: "
-                  f"{dict(zip(varying_params, combo))}, rep {rep+1}")
             
             params['seed'] = rep
             problem = GateAssignmentProblem(**params)
@@ -196,20 +235,36 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
                 'total_time': result['total_time'],
                 'status': result['status']
             }
-            results.append(result_dict)
             
-            obj_str = f"{result['objective']:.2f}" if result['objective'] else 'N/A'
-            print(f"  Objective: {obj_str}, Time: {result['total_time']:.2f}s")
-    
-    # Save and return results
+            replication_results.append(result_dict)
+        
+        # Calculate averages ONLY for this specific parameter combination
+        # (averaging across the n_replications we just completed)
+        valid_objectives = [r['objective'] for r in replication_results if r['objective'] is not None]
+        valid_gaps = [r['gap'] for r in replication_results if r['gap'] is not None]
+        
+        averaged_result = {
+            **{p: v for p, v in zip(varying_params, combo)},
+            'n_replications': n_replications,
+            'objective': sum(valid_objectives) / len(valid_objectives) if valid_objectives else None,
+            'gap': sum(valid_gaps) / len(valid_gaps) if valid_gaps else None,
+            'build_time': sum(r['build_time'] for r in replication_results) / n_replications,
+            'solve_time': sum(r['solve_time'] for r in replication_results) / n_replications,
+            'total_time': sum(r['total_time'] for r in replication_results) / n_replications,
+            'status_summary': ','.join(str(r['status']) for r in replication_results)
+        }
+        
+        results.append(averaged_result)
+
+    # Save averaged results (one row per parameter combination)
     df = pd.DataFrame(results)
     df.to_csv(output_file, index=False)
-    print(f"\nResults saved to {output_file}")
+    print(f"\nAveraged results saved to {output_file}")
     
     return df
 
 def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'], 
-                             group_by=None, save_path=None, use_errorbars=True):
+                             group_by=None, save_path=None, use_errorbars=None):
     """
     Plot sensitivity analysis results with error bars or shaded regions.
     """
@@ -459,39 +514,38 @@ def plot_comparison_chart(df, x_param, y_metric, group_by=None, save_path=None,
 def main():
 
     LIMIT = 20
-    REPS  = 5
+    REPS  = 2
 
      # Analysis 1: Aircraft count vs gate count
     df1 = run_sensitivity_analysis(
         param_ranges={
-            'num_dom_aircraft': np.arange(1,10,1),
-            'num_dom_gates': [5] #np.arange(2,8,1)
+            'num_dom_aircraft': np.arange(5,10,1),
+            'num_dom_gates': np.arange(2,7,1)
         },
         fixed_params={'num_int_aircraft': 0, 'num_int_gates': 0},
         time_limit=LIMIT,
         n_replications=REPS,
-        output_file='results_aircraft_gates.csv'
+        output_file='SAoutputData/results_aircraft_gates.csv'
     )
     
-    # plot_sensitivity_results(
-    #     df1, x_param='num_dom_aircraft', 
-    #     metrics=['objective', 'total_time'],
-    #     group_by='num_dom_gates',
-    #     save_path='plot_aircraft_gates.png'
-    # )
+    plot_sensitivity_results(
+        df1, x_param='num_dom_aircraft', 
+        metrics=['objective', 'total_time'],
+        group_by='num_dom_gates',
+        save_path='Graphs/SensitivityAnalysis/plot_aircraft_gates.png'
+    )
     
     # plot_heatmap(
     #     df1, x_param='num_dom_aircraft', y_param='num_dom_gates',
     #     metric='objective', save_path='heatmap_objective.png'
     # )
     
-    plot_utilization_analysis(df1, use_errorbars=True,save_path='plot_utilization.png')
+    plot_utilization_analysis(df1, use_errorbars=False,save_path='Graphs/SensitivityAnalysis/plot_utilization.png')
     
 
-    plot_comparison_chart(
-        df1, x_param='num_dom_aircraft', y_metric='objective',
-        group_by='num_dom_gates', chart_type='bar', use_errorbars=True
-    )
+    # plot_comparison_chart(df1, x_param='num_dom_aircraft', y_metric='objective', save_path='Graphs/SensitivityAnalysis/comparison_chart.png',
+    #                       group_by='num_dom_gates', chart_type='bar', use_errorbars=False
+    # )
     
     # # Analysis 2: Turnover time impact
     # df2 = run_sensitivity_analysis(
