@@ -1,13 +1,8 @@
 
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import matplotlib
-from gurobipy import quicksum, GRB, Model
-import time
-import math
 
 def plot_gate_schedule(x_solution, comp_ir, p_ij, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, apron='apron'):
     """

@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 from gurobipy import quicksum, GRB, Model
 from typing import Dict, List
 

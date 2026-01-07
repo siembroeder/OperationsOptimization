@@ -1,11 +1,4 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import matplotlib
 from gurobipy import quicksum, GRB, Model
-import time
-import math
 
 def BuildGateModel(num_aircraft, all_aircraft,g,gates_available_per_ac,p_ij,e_i,f_i,d_kl,ed_k,dom_gates,dom_aircraft,
                    int_gates,int_aircraft,distinct_times,comp_ir,NA_star):
