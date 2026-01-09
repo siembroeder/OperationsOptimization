@@ -85,7 +85,9 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
                 'solve_time': result['solve_time'],
                 'total_time': result['total_time'],
                 'status': result['status'],
-                'NA_star': result['NA_star']
+                'NA_star': result['NA_star'],
+                'total_pax': result['total_pax'],
+                'objective/pax': result['objective/pax']
             }
             
             replication_results.append(result_dict)
@@ -104,7 +106,9 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
             'solve_time': sum(r['solve_time'] for r in replication_results) / n_replications,
             'total_time': sum(r['total_time'] for r in replication_results) / n_replications,
             'status_summary': ','.join(str(r['status']) for r in replication_results),
-            'NA_star': sum(r['NA_star'] for r in replication_results) / n_replications
+            'NA_star': sum(r['NA_star'] for r in replication_results) / n_replications,
+            'total_pax': sum(r['total_pax'] for r in replication_results) / n_replications,
+            'objective/pax': sum(r['objective/pax'] for r in replication_results) / n_replications
         }
         
         results.append(averaged_result)
