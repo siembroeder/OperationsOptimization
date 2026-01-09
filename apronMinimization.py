@@ -35,9 +35,11 @@ def constructArcs(aircraft:dict) -> tuple[List, Dict, int, int]:
 
     return arcs, nodes, source, sink
 
-def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, sink:int) -> tuple[Model, Dict]:
+def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, sink:int, verbose:bool=False, write_to_file:bool=False) -> tuple[Model, Dict]:
     apron_model = Model('Apron')
-    apron_model.params.LogFile = f'log_files/apron.log'
+    
+    if write_to_file:
+        apron_model.params.LogFile = f'log_files/apron.log'
 
     z = {}
     for (i,j) in arcs:
@@ -55,6 +57,8 @@ def optimizeApronAssignmentModel(arcs:list, gates:list, nodes:dict, source:int, 
         apron_model.addConstr(lhs == rhs, name=f'flowConservationNode_{k}')
         apron_model.addConstr(quicksum(z[k,j] for (i,j) in arcs if i==k) <= 1, name=f'oneOutgoingNode_{k}')
 
+    if not verbose:
+        apron_model.Params.OutputFlag = 0
     apron_model.optimize()
 
     if apron_model.status == GRB.OPTIMAL or apron_model.status == GRB.TIME_LIMIT:
@@ -162,9 +166,9 @@ def main():
     int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
     NA_I = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
 
-
-    dom_apron_model.write('log_files/dom_apron_model.lp')
-    int_apron_model.write('log_files/int_apron_model.lp')
+    if write_to_file:
+        dom_apron_model.write('log_files/dom_apron_model.lp')
+        int_apron_model.write('log_files/int_apron_model.lp')
 
 
     dom_node_to_aircraft = {n: ac for ac, n in dom_nodes.items()} # inversion of domestic_nodes
