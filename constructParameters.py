@@ -1,6 +1,6 @@
+
 import numpy as np
 from typing import Dict, List
-
 
 def getAircraft(num:int = 1, ac_type:str = '') -> List[str]:
     '''
@@ -26,12 +26,16 @@ def getGates(num:int = 3, gate_type:str = '') -> List[str]:
 def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_times:dict) -> Dict[str, Dict[str, int]]:
     '''
     Returns symmetric p_ij matrix, number of pax transferring from aircraft i to aircraft j
-    This is the same simplification used in the paper
     '''
     p_ij = {i: {j: 0 for j in all_aircraft} for i in all_aircraft}
     for idx_i, i in enumerate(all_aircraft):
         ai, di = all_aircraft_times[i]
-        for j in all_aircraft[idx_i + 1:]:
+        # for j in all_aircraft[idx_i + 1:]:
+        for idx_j, j in enumerate(all_aircraft):
+            if i == j: # Stop self transfers
+                p_ij[i][j] = 0
+                continue
+
             aj, dj = all_aircraft_times[j]
 
             if ai < dj and aj < di:  # overlap
@@ -104,3 +108,4 @@ def getArrivalDepartureTimes(aircraft:list, turnovertime:float, window:tuple, ti
         departure = arrival + turnovertime
         times[ac] = (arrival, departure)
     return times
+
