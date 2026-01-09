@@ -57,7 +57,7 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
 
 
 
-    # Run experiments
+    # Run experiments, avg over n_replications.
     results = []
 
     for run_idx, combo in enumerate(combinations, 1):
@@ -69,6 +69,8 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
         replication_results = []
         
         for rep in range(n_replications):
+            print(f"\nRun {(run_idx-1)*n_replications + rep + 1}/{total_runs}: "
+                    f"{dict(zip(varying_params, combo))}, rep {rep+1}")
             
             params['seed'] = rep
             problem = GateAssignmentProblem(**params)
@@ -82,7 +84,8 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
                 'build_time': result['build_time'],
                 'solve_time': result['solve_time'],
                 'total_time': result['total_time'],
-                'status': result['status']
+                'status': result['status'],
+                'NA_star': result['NA_star']
             }
             
             replication_results.append(result_dict)
@@ -100,7 +103,8 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
             'build_time': sum(r['build_time'] for r in replication_results) / n_replications,
             'solve_time': sum(r['solve_time'] for r in replication_results) / n_replications,
             'total_time': sum(r['total_time'] for r in replication_results) / n_replications,
-            'status_summary': ','.join(str(r['status']) for r in replication_results)
+            'status_summary': ','.join(str(r['status']) for r in replication_results),
+            'NA_star': sum(r['NA_star'] for r in replication_results) / n_replications
         }
         
         results.append(averaged_result)

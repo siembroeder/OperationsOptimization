@@ -29,15 +29,15 @@ def main():
 
     dom_turnovertime = 1
     int_turnovertime = 1.5
-    airport_operating_window = (13,14)
-    time_discretization = 1. # in hours
+    airport_operating_window = (13,16)
+    time_discretization = 0.5 # in hours
     entrance_coords = (0,0)
 
 
-    dom_aircraft = getAircraft(num = 1, ac_type = 'dom')
+    dom_aircraft = getAircraft(num = 15, ac_type = 'dom')
     int_aircraft = getAircraft(num = 0, ac_type = 'int')
 
-    dom_gates = getGates(num=5, gate_type='A')
+    dom_gates = getGates(num=8, gate_type='A')
     int_gates = getGates(num=0, gate_type='B')
     
     all_aircraft = dom_aircraft + int_aircraft

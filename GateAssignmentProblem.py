@@ -8,7 +8,7 @@ from apronMinimization   import findMinApron
 from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
 
 class GateAssignmentProblem:
-    """Single gate assignment problem instance."""
+    """Single gate assignment problem instance"""
     
     DEFAULT_CONFIG = {
         'num_dom_aircraft': 10,
@@ -17,7 +17,7 @@ class GateAssignmentProblem:
         'num_int_gates': 0,
         'dom_turnover': 1.0,
         'int_turnover': 1.5,
-        'airport_window': (13, 14),
+        'airport_window': (13, 19), # Non-inclusive second element
         'time_disc': 1.0,
         'seed': 1
     }
@@ -144,5 +144,6 @@ class GateAssignmentProblem:
             'total_time': t_build + t_solve,
             'x_solution': x_solution,
             'iter_log': iter_log,
-            'model': model
+            'model': model,
+            'NA_star':self.NA_star
         }

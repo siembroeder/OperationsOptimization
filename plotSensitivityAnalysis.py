@@ -11,7 +11,7 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
     if n_metrics == 1:
         axes = [axes]
     
-    for ax, metric in zip(axes, metrics):
+    for i, (ax, metric) in enumerate(zip(axes, metrics)):
         if group_by and group_by in df.columns:
             for group_val in sorted(df[group_by].unique()):
                 subset = df[df[group_by] == group_val]
@@ -44,8 +44,15 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
                                grouped['mean'] + grouped['std'], 
                                alpha=0.2, color='steelblue')
         
-        ax.set_xlabel(x_param.replace('_', ' ').title(), fontsize=11)
+        # ax.set_xlabel(x_param.replace('_', ' ').title(), fontsize=11)
+        ax.set_xlabel('Total aircraft', fontsize=11)
         ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=11)
+        
+        ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+        if i == 1:
+            ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
         ax.grid(True, alpha=0.3)
         if group_by:
             ax.legend(fontsize=10)
