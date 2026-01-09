@@ -9,17 +9,17 @@ from runSensitivityAnalsyis import run_sensitivity_analysis
 
 def main() -> None:
 
-    t_start = time.time()
+    t_start: float = time.time()
 
-    LIMIT = 60
+    LIMIT = 600
     REPS  = 20
-
-    # 1 rep takes 5.5 minutes for 1hr window. (5,16) and (2,8)
+    FILE_POSTFIX = '13-14_20r_newpij' #'aircraft_gates_15_18_1r_newpij'
+    
 
      # Analysis 1: Aircraft count vs gate count
     df1: DataFrame = run_sensitivity_analysis(
-        param_ranges = {'num_dom_aircraft': np.arange(5,16,1), # Non inclusive for end.
-                        'num_dom_gates': np.arange(2,8,1)      # Non inclusive for end.
+        param_ranges = {'num_dom_aircraft': np.arange(1,16,1), # Non inclusive for end.
+                        'num_dom_gates': np.arange(1,8,1)      # Non inclusive for end.
         },
         fixed_params = {'num_int_aircraft': 0, 
                         'num_int_gates': 0,
@@ -27,7 +27,7 @@ def main() -> None:
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file='SAoutputData/results_aircraft_gates.csv'
+        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv'
     )
     
     df1.rename(columns={'num_dom_gates': 'n_gates',}, inplace=True)
@@ -39,8 +39,16 @@ def main() -> None:
         df1, x_param='num_dom_aircraft', 
         metrics=['objective', 'total_time'],
         group_by='n_gates',
-        save_path='Graphs/SensitivityAnalysis/plot_aircraft_gates_13-14_20reps.png'
+        save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png'
     )
+
+    plot_sensitivity_results(
+        df1, x_param='num_dom_aircraft', 
+        metrics=['objective/pax'],
+        group_by='n_gates',
+        save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png'
+    )
+
     
     # plot_heatmap(
     #     df1, x_param='num_dom_aircraft', y_param='num_dom_gates',
@@ -53,6 +61,21 @@ def main() -> None:
     # plot_comparison_chart(df1, x_param='num_dom_aircraft', y_metric='objective', save_path='Graphs/SensitivityAnalysis/comparison_chart.png',
     #                       group_by='num_dom_gates', chart_type='bar', use_errorbars=False
     # )
+
+
+
+    # Analysis of total number of passengers
+
+
+
+
+
+
+
+
+
+
+
     
     # # Analysis 2: Turnover time impact
     # df2 = run_sensitivity_analysis(
