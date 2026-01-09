@@ -60,6 +60,7 @@ class GateAssignmentProblem:
         self.nt_i = {i: np.random.randint(0, 101) for i in self.all_aircraft}
         self.e_i  = {i: np.random.randint(0, self.nt_i[i] + 1) for i in self.all_aircraft}
         self.f_i  = {i: self.nt_i[i] - self.e_i[i] for i in self.all_aircraft}
+        self.total_passengers = sum(self.e_i[i] + self.f_i[i] + sum(self.p_ij[i][j] for j in self.all_aircraft[idx_i+1:]) for idx_i, i in enumerate(self.all_aircraft))
         
         # Generate gate compatibility and distances
         self.g = {**{ac: 0 for ac in self.dom_aircraft}, **{ac: 1 for ac in self.int_aircraft}        }
@@ -145,5 +146,9 @@ class GateAssignmentProblem:
             'x_solution': x_solution,
             'iter_log': iter_log,
             'model': model,
-            'NA_star':self.NA_star
+            'NA_star':self.NA_star,
+            'total_pax':self.total_passengers,
+            'objective/pax': objective/self.total_passengers
         }
+
+
