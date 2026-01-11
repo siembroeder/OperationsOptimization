@@ -9,7 +9,7 @@ import math
 
 from apronMinimization import findMinApron
 from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
-from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_gate_schedule_hours_distinct_broken
+from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_timetable_broken
 from BuildModel import BuildGateModel
 
 
@@ -133,7 +133,7 @@ def main():
     print(f'Optimizing took {t4-t3} seconds')
     # plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft)
 
-    plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft,
+    plot_timetable_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_aircraft_times, distinct_times, dom_aircraft, int_aircraft,
                                             fig_save_path = file_postfix)
 
 

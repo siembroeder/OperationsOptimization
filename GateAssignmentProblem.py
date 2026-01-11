@@ -154,7 +154,7 @@ class GateAssignmentProblem:
             'model': model,
             'NA_star':self.NA_star,
             'total_pax':self.total_passengers,
-            'objective/pax': objective/self.total_passengers
+            'objective/pax': [objective/self.total_passengers if objective!=None else None]
         }
 
     def plot_timetable(self, results, fig_save_path=None)-> None:

@@ -166,6 +166,7 @@ def main():
     int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
     NA_I = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
 
+    write_to_file= False
     if write_to_file:
         dom_apron_model.write('log_files/dom_apron_model.lp')
         int_apron_model.write('log_files/int_apron_model.lp')
