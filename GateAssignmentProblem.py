@@ -75,8 +75,6 @@ class GateAssignmentProblem:
         self.gate_coords = getGateCoords(self.dom_gates, self.int_gates)
         self.d_kl, self.ed_k = getGateDistances(entrance_coords, self.gate_coords, self.all_gates)
     
-
-
     def solve(self, time_limit=3600, verbose=False, plot_timetable_flag=False):
         """Solve the gate assignment problem."""
         
@@ -117,7 +115,6 @@ class GateAssignmentProblem:
             self.plot_timetable(results)
         
         return results
-
 
     def extract_results(self, model, x, t_build, t_solve, iter_log):
         """Safely extract results from solved model."""
