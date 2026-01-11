@@ -1,12 +1,13 @@
 from gurobipy import quicksum, GRB, Model
 
 def BuildGateModel(num_aircraft, all_aircraft,g,gates_available_per_ac,p_ij,e_i,f_i,d_kl,ed_k,dom_gates,dom_aircraft,
-                   int_gates,int_aircraft,distinct_times,comp_ir,NA_star):
+                   int_gates,int_aircraft,distinct_times,comp_ir,NA_star, write_to_file=None):
 
     # Build the model according to (Karsu, Azizoğlu & Alanli, 2021)
     #################################################################################################################################
     m = Model('distance')
-    m.params.LogFile = f'log_files/distance.log'
+    if write_to_file:
+        m.params.LogFile = f'log_files/distance.log'
 
     print('Constructing the variables')
     y = {}
