@@ -5,7 +5,7 @@ from itertools import product
 from GateAssignmentProblem import GateAssignmentProblem
 
 def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600, 
-                             n_replications=1, output_file='sensitivity_results.csv'):
+                             n_replications=1, output_file='sensitivity_results.csv', timetable_flag = None):
     """Run sensitivity analysis over parameter ranges."""
 
     # Setup base configuration
@@ -74,7 +74,7 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
             
             params['seed'] = rep
             problem = GateAssignmentProblem(**params)
-            result = problem.solve(time_limit=time_limit, verbose=False)
+            result = problem.solve(time_limit=time_limit, verbose=False, plot_timetable_flag=timetable_flag)
             
             result_dict = {
                 'replication': rep,

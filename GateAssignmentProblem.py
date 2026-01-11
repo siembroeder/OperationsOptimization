@@ -1,11 +1,15 @@
+from plotGateAssignments import plot_gate_schedule_hours_distinct
 import numpy as np
 from gurobipy import GRB
 import time
 import math
+import matplotlib.pyplot as plt
+import matplotlib
 
 from BuildModel import BuildGateModel
 from apronMinimization   import findMinApron
 from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
+from plotGateAssignments import plot_timetable_broken
 
 class GateAssignmentProblem:
     """Single gate assignment problem instance"""
@@ -73,7 +77,7 @@ class GateAssignmentProblem:
     
 
 
-    def solve(self, time_limit=3600, verbose=False):
+    def solve(self, time_limit=3600, verbose=False, plot_timetable_flag=False):
         """Solve the gate assignment problem."""
         
                 # Build model
@@ -107,7 +111,12 @@ class GateAssignmentProblem:
         t_solve = time.time() - t_solve_start
         
         # Extract results safely
-        return self.extract_results(model, x, t_build, t_solve, iter_log)
+        results = self.extract_results(model, x, t_build, t_solve, iter_log)
+
+        if plot_timetable_flag:
+            self.plot_timetable(results)
+        
+        return results
 
 
     def extract_results(self, model, x, t_build, t_solve, iter_log):
@@ -151,4 +160,27 @@ class GateAssignmentProblem:
             'objective/pax': objective/self.total_passengers
         }
 
+    def plot_timetable(self, results, fig_save_path=None)-> None:
 
+        if not results['x_solution']:
+            print('No solution available to plot')
+            return
+
+        plot_timetable_broken(x_solution=results['x_solution'],
+                              comp_ir=self.comp_ir,
+                              p_ij=self.p_ij,
+                              e_i=self.e_i,
+                              f_i=self.f_i,
+                              all_aircraft=self.all_aircraft,
+                              gate_coords=self.gate_coords,
+                              dom_gates=self.dom_gates,
+                              int_gates=self.int_gates,
+                              all_times=list(self.all_aircraft_times.values()),
+                              distinct_times=self.distinct_times,
+                              dom_aircraft=self.dom_aircraft,
+                              int_aircraft=self.int_aircraft,
+                              apron='apron',
+                              fig_save_path=fig_save_path,
+                              dom_tat=self.config['dom_turnover'],
+                              int_tat=self.config['int_turnover'])
+        

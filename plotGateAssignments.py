@@ -290,7 +290,7 @@ def plot_gate_schedule_hours_distinct(x_solution, comp_ir, p_ij, e_i, f_i, all_a
 
 
 
-def plot_gate_schedule_hours_distinct_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, dom_aircraft, int_aircraft, 
+def plot_timetable_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gate_coords, dom_gates, int_gates, all_times, distinct_times, dom_aircraft, int_aircraft, 
                                              apron='apron', fig_save_path=None, dom_tat = 1, int_tat=1.5):
     """
     Visualize aircraft schedule along the Y-axis with gates positioned vertically.

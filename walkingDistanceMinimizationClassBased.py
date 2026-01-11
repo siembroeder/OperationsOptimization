@@ -6,6 +6,7 @@ from pandas import DataFrame
 # from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_gate_schedule_hours_distinct_broken
 from plotSensitivityAnalysis import plot_sensitivity_results, plot_comparison_chart, plot_heatmap, plot_utilization_analysis
 from runSensitivityAnalsyis import run_sensitivity_analysis
+from plotGateAssignments import plot_timetable_broken
 
 def main() -> None:
 
@@ -13,21 +14,24 @@ def main() -> None:
 
     LIMIT = 600
     REPS  = 20
-    FILE_POSTFIX = '13-14_20r_newpij' #'aircraft_gates_15_18_1r_newpij'
+    FILE_POSTFIX = 'compare_30mins2halfhours'
     
 
-     # Analysis 1: Aircraft count vs gate count
+    # Analysis 1: Aircraft count vs gate count
     df1: DataFrame = run_sensitivity_analysis(
-        param_ranges = {'num_dom_aircraft': np.arange(1,16,1), # Non inclusive for end.
+        param_ranges = {'num_dom_aircraft': np.arange(1,16,1)[::-1], # Non inclusive for end.
                         'num_dom_gates': np.arange(1,8,1)      # Non inclusive for end.
         },
         fixed_params = {'num_int_aircraft': 0, 
                         'num_int_gates': 0,
-                        'airport_window': (13,14)
+                        'airport_window': (13,15.5),
+                        'time_disc': 0.5,
+                        'dom_turnover': 0.5
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv'
+        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+        timetable_flag = False
     )
     
     df1.rename(columns={'num_dom_gates': 'n_gates',}, inplace=True)
@@ -35,6 +39,7 @@ def main() -> None:
     t_end: float = time.time()
     print(f'\nSimulation took: {round((t_end-t_start) / 60, ndigits=2)} minutes.')
 
+    # Plot objective and time vs n_aircraft
     plot_sensitivity_results(
         df1, x_param='num_dom_aircraft', 
         metrics=['objective', 'total_time'],
@@ -42,12 +47,35 @@ def main() -> None:
         save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png'
     )
 
+    # Plot objective/pax vs n_aircraft
     plot_sensitivity_results(
         df1, x_param='num_dom_aircraft', 
         metrics=['objective/pax'],
         group_by='n_gates',
         save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png'
     )
+
+
+
+
+    # Analysis 2: TAT. Required resolution: TAT > time disc 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     
     # plot_heatmap(
