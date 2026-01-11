@@ -23,7 +23,8 @@ class GateAssignmentProblem:
         'int_turnover': 1.5,
         'airport_window': (13, 19), # Non-inclusive second element
         'time_disc': 1.0,
-        'seed': 1
+        'seed': 1,
+        'passenger_type': 'paper'
     }
 
     def __init__(self, **kwargs):
@@ -60,12 +61,8 @@ class GateAssignmentProblem:
         self.NA_star = findMinApron(self.dom_aircraft_times, self.int_aircraft_times, self.dom_gates, self.int_gates)
         
         # Generate passenger data
-        self.p_ij = getTransferPassengers(self.all_aircraft, self.num_aircraft, self.all_aircraft_times)
-        self.nt_i = {i: np.random.randint(0, 101) for i in self.all_aircraft}
-        self.e_i  = {i: np.random.randint(0, self.nt_i[i] + 1) for i in self.all_aircraft}
-        self.f_i  = {i: self.nt_i[i] - self.e_i[i] for i in self.all_aircraft}
-        self.total_passengers = sum(self.e_i[i] + self.f_i[i] + sum(self.p_ij[i][j] for j in self.all_aircraft[idx_i+1:]) for idx_i, i in enumerate(self.all_aircraft))
-        
+        self.generate_passenger_data()
+
         # Generate gate compatibility and distances
         self.g = {**{ac: 0 for ac in self.dom_aircraft}, **{ac: 1 for ac in self.int_aircraft}        }
         self.gates_available_per_ac = {ac: self.dom_gates if self.g[ac] == 0 else self.int_gates 
@@ -75,6 +72,37 @@ class GateAssignmentProblem:
         self.gate_coords = getGateCoords(self.dom_gates, self.int_gates)
         self.d_kl, self.ed_k = getGateDistances(entrance_coords, self.gate_coords, self.all_gates)
     
+
+    def generate_passenger_data(self):
+        passenger_type = self.config['passenger_type']
+
+        if passenger_type == 'paper': # Default, as described in the paper
+            self.p_ij = getTransferPassengers(self.all_aircraft, self.num_aircraft, self.all_aircraft_times)
+            self.nt_i = {i: np.random.randint(1, 101) for i in self.all_aircraft}
+            self.e_i  = {i: np.random.randint(0, self.nt_i[i] + 1) for i in self.all_aircraft}
+            self.f_i  = {i: self.nt_i[i] - self.e_i[i] for i in self.all_aircraft}
+                        
+        elif passenger_type == 'no_transfer':
+            self.p_ij = {i: {j: 0 for j in self.all_aircraft} for i in self.all_aircraft} 
+            self.nt_i = {i: np.random.randint(1, 101) for i in self.all_aircraft}
+            self.e_i  = {i: np.random.randint(0, self.nt_i[i] + 1) for i in self.all_aircraft}
+            self.f_i  = {i: self.nt_i[i] - self.e_i[i] for i in self.all_aircraft}
+
+        elif passenger_type == 'only_transfer':            
+            self.p_ij = getTransferPassengers(self.all_aircraft, self.num_aircraft, self.all_aircraft_times)
+            self.nt_i = {i: 0 for i in self.all_aircraft}
+            self.e_i  = {i: 0 for i in self.all_aircraft}
+            self.f_i  = {i: 0 for i in self.all_aircraft}
+
+        elif passenger_type == 'equal':
+            self.p_ij = getTransferPassengers(self.all_aircraft, self.num_aircraft, self.all_aircraft_times)
+            self.nt_i = {i: sum(self.p_ij[i][j] for j in self.all_aircraft) for i in self.all_aircraft}
+            self.e_i  = {i: np.random.randint(0,self.nt_i[i]) for i in self.all_aircraft}
+            self.f_i  = {i: self.nt_i[i] - self.e_i[i] for i in self.all_aircraft}
+
+        self.total_passengers = sum(self.nt_i[i] + sum(self.p_ij[i][j] for j in self.all_aircraft) for i in self.all_aircraft)
+
+
     def solve(self, time_limit=3600, verbose=False, plot_timetable_flag=None):
         """Solve the gate assignment problem."""
         

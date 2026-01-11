@@ -5,7 +5,7 @@ from itertools import product
 from GateAssignmentProblem import GateAssignmentProblem
 
 def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600, 
-                             n_replications=1, output_file='sensitivity_results.csv', timetable_flag = None):
+                             n_replications=1, output_file='sensitivity_results.csv', timetable_flag = None, passenger_type='basic'):
     """Run sensitivity analysis over parameter ranges."""
 
     # Setup base configuration
@@ -20,43 +20,6 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
     
     total_runs = len(combinations) * n_replications
     
-    # # Run experiments
-    # results = []
-    # for run_idx, combo in enumerate(combinations, 1):
-    #     params = base_config.copy()
-    #     for param_name, param_value in zip(varying_params, combo):
-    #         params[param_name] = param_value
-        
-    #     for rep in range(n_replications):
-    #         print(f"\nRun {(run_idx-1)*n_replications + rep + 1}/{total_runs}: "
-    #               f"{dict(zip(varying_params, combo))}, rep {rep+1}")
-            
-    #         params['seed'] = rep
-    #         problem = GateAssignmentProblem(**params)
-    #         result = problem.solve(time_limit=time_limit, verbose=False)
-            
-    #         result_dict = {
-    #             'replication': rep,
-    #             **{p: v for p, v in zip(varying_params, combo)},
-    #             'objective': result['objective'],
-    #             'gap': result['gap'],
-    #             'build_time': result['build_time'],
-    #             'solve_time': result['solve_time'],
-    #             'total_time': result['total_time'],
-    #             'status': result['status']
-    #         }
-    #         results.append(result_dict)
-            
-    #         obj_str = f"{result['objective']:.2f}" if result['objective'] else 'N/A'
-    #         print(f"  Objective: {obj_str}, Time: {result['total_time']:.2f}s")
-    
-    # # Save and return results
-    # df = pd.DataFrame(results)
-    # df.to_csv(output_file, index=False)
-    # print(f"\nResults saved to {output_file}")
-
-
-
     # Run experiments, avg over n_replications.
     results = []
 
