@@ -13,60 +13,136 @@ def main() -> None:
     t_start: float = time.time()
 
     LIMIT = 600
-    REPS  = 20
-    FILE_POSTFIX = 'compare_30mins2halfhours'
+    # REPS  = 20
+    # FILE_POSTFIX = '...'
     
 
     # Analysis 1: Aircraft count vs gate count
-    df1: DataFrame = run_sensitivity_analysis(
-        param_ranges = {'num_dom_aircraft': np.arange(1,16,1)[::-1], # Non inclusive for end.
-                        'num_dom_gates': np.arange(1,8,1)      # Non inclusive for end.
+    # df1: DataFrame = run_sensitivity_analysis(
+    #     param_ranges = {'num_dom_aircraft': np.arange(1,16,1)[::-1], # Non inclusive for end.
+    #                     'num_dom_gates': np.arange(1,8,1)         # Non inclusive for end.
+    #     },
+    #     fixed_params = {'num_int_aircraft': 0, 
+    #                     'num_int_gates': 0,
+    #                     'airport_window': (13,18),
+    #                     'time_disc': 1,
+    #                     'dom_turnover': 1
+    #     },
+    #     time_limit = LIMIT,
+    #     n_replications =REPS,
+    #     output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+    #     timetable_flag = True
+    # )
+    
+    # df1.rename(columns={'num_dom_gates': 'n_gates',}, inplace=True)
+
+    # t_end: float = time.time()
+    # print(f'\nSimulation took: {round((t_end-t_start) / 60, ndigits=2)} minutes.')
+
+    # Plot objective and time vs n_aircraft
+    # plot_sensitivity_results(
+    #     df1, x_param='num_dom_aircraft', 
+    #     metrics=['objective', 'total_time'],
+    #     group_by='n_gates',
+    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png'
+    # )
+
+    # # Plot objective/pax vs n_aircraft
+    # plot_sensitivity_results(
+    #     df1, x_param='num_dom_aircraft', 
+    #     metrics=['objective/pax'],
+    #     group_by='n_gates',
+    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png'
+    # )
+
+
+
+
+    # Analysis 2: time_disc. Required resolution: TAT > time disc 
+    REPS = 1
+    FILE_POSTFIX = '...'
+    df2: DataFrame = run_sensitivity_analysis(
+        param_ranges = {'time_disc': np.arange(0.25,3.55,0.2)
         },
-        fixed_params = {'num_int_aircraft': 0, 
+        fixed_params = {'num_dom_aircraft': 15,
+                        'num_dom_gates': 3,
+                        'num_int_aircraft': 0, 
                         'num_int_gates': 0,
-                        'airport_window': (13,15.5),
-                        'time_disc': 0.5,
-                        'dom_turnover': 0.5
+                        'airport_window': (13,19),
+                        #'time_disc': 1,
+                        'dom_turnover': 1
         },
         time_limit = LIMIT,
         n_replications =REPS,
         output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
         timetable_flag = False
     )
-    
-    df1.rename(columns={'num_dom_gates': 'n_gates',}, inplace=True)
+
 
     t_end: float = time.time()
     print(f'\nSimulation took: {round((t_end-t_start) / 60, ndigits=2)} minutes.')
 
-    # Plot objective and time vs n_aircraft
+    #Plot objective and time vs time_disc
     plot_sensitivity_results(
-        df1, x_param='num_dom_aircraft', 
+        df2, x_param='time_disc', 
         metrics=['objective', 'total_time'],
-        group_by='n_gates',
-        save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png'
+        group_by=None,
+        save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png',
+        x_label = 'Time Discretization'
     )
 
-    # Plot objective/pax vs n_aircraft
-    plot_sensitivity_results(
-        df1, x_param='num_dom_aircraft', 
-        metrics=['objective/pax'],
-        group_by='n_gates',
-        save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png'
-    )
+    # Plot objective/pax vs time_disc
+    # plot_sensitivity_results(
+    #     df2, x_param='time_disc', 
+    #     metrics=['objective/pax'],
+    #     group_by=None,
+    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png',
+    #     x_label = 'Time Discretization'
+    # )
 
 
+    # Analysis 3: TAT. Required resolution: TAT > time disc 
+    # REPS = 100
+    # FILE_POSTFIX = 'TAT_13-19_100r_a15_g3'
+    # df2: DataFrame = run_sensitivity_analysis(
+    #     param_ranges = {'dom_turnover': np.arange(0.25, 3.55, 0.2)[::-1]
+    #     },
+    #     fixed_params = {'num_dom_aircraft': 15,
+    #                     'num_dom_gates': 3,
+    #                     'num_int_aircraft': 0, 
+    #                     'num_int_gates': 0,
+    #                     'airport_window': (13,19),
+    #                     'time_disc': 1,
+    #                     # 'dom_turnover': 1
+    #     },
+    #     time_limit = LIMIT,
+    #     n_replications =REPS,
+    #     output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+    #     timetable_flag = False
+    # )
 
 
-    # Analysis 2: TAT. Required resolution: TAT > time disc 
+    # t_end: float = time.time()
+    # print(f'\nSimulation took: {round((t_end-t_start) / 60, ndigits=2)} minutes.')
 
+    # # Plot objective and time vs turnaround time
+    # plot_sensitivity_results(
+    #     df2, x_param='dom_turnover', 
+    #     metrics=['objective', 'total_time'],
+    #     group_by=None,
+    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png',
+    #     x_label = 'Turnaround Time',
+    #     secondary_axis = True
+    # )
 
-
-
-
-
-
-
+    # # Plot objective/pax vs turnaround time
+    # plot_sensitivity_results(
+    #     df2, x_param='dom_turnover', 
+    #     metrics=['objective/pax'],
+    #     group_by=None,
+    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png',
+    #     x_label = 'Turnaround Time'
+    # )
 
 
 
