@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from   matplotlib.ticker import MaxNLocator
 
 def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'], 
                              group_by=None, save_path=None, x_label = 'x_label', secondary_axis = None):
@@ -38,19 +39,19 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
     #         ax.plot(time_disc, np.floor(window/time_disc))
     #         # plt.show()
     
-    #     # ax.set_xlabel(x_param.replace('_', ' ').title(), fontsize=11)
-    #     ax.set_xlabel(x_label, fontsize=11)
-    #     ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=11)
+        # ax.set_xlabel(x_param.replace('_', ' ').title(), fontsize=11)
+        ax.set_xlabel(x_label, fontsize=11)
+        ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=11)
         
-    #     if x_param in ['n_gates', 'num_dom_aircraft']:
-    #         ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        if x_param in ['n_gates', 'num_dom_aircraft']:
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-    #     if i == 1:
-    #         ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        if i == 1:
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
-    #     ax.grid(True, alpha=0.3)
-    #     if group_by:
-    #         ax.legend(fontsize=10)
+        ax.grid(True, alpha=0.3)
+        if group_by:
+            ax.legend(fontsize=10)
     
     # plt.tight_layout()
     # if save_path:
@@ -75,9 +76,9 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
             ax2.tick_params(axis='y', labelcolor='grey')
             
             if x_param in ['n_gates', 'num_dom_aircraft']:
-                ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+                ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             if i == 1:
-                ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+                ax.yaxis.set_major_locator(MaxNLocator(integer=True))
             
             ax.grid(True, alpha=0.3)
             
