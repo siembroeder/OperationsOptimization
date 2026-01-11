@@ -104,8 +104,13 @@ def getArrivalDepartureTimes(aircraft:list, turnovertime:float, window:tuple, ti
     times = {}
     for ac in aircraft:
         possible_times = np.arange(window[0], window[1], time_discretization) # only operate planes in window between opening and closing of airport +turnovertime
-        arrival = np.random.choice(possible_times)
-        departure = arrival + turnovertime
-        times[ac] = (arrival, departure)
+        
+        time_assigned = False
+        while not time_assigned:
+            arrival = np.random.choice(possible_times)
+            departure = arrival + turnovertime
+            if departure <= window[1]:
+                times[ac] = (arrival, departure)
+                time_assigned =True
     return times
 
