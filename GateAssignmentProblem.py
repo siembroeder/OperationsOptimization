@@ -75,7 +75,7 @@ class GateAssignmentProblem:
         self.gate_coords = getGateCoords(self.dom_gates, self.int_gates)
         self.d_kl, self.ed_k = getGateDistances(entrance_coords, self.gate_coords, self.all_gates)
     
-    def solve(self, time_limit=3600, verbose=False, plot_timetable_flag=False):
+    def solve(self, time_limit=3600, verbose=False, plot_timetable_flag=None):
         """Solve the gate assignment problem."""
         
                 # Build model
@@ -154,7 +154,7 @@ class GateAssignmentProblem:
             'model': model,
             'NA_star':self.NA_star,
             'total_pax':self.total_passengers,
-            'objective/pax': [objective/self.total_passengers if objective!=None else None]
+            'objective/pax': [objective/self.total_passengers if objective!=None else None][0]
         }
 
     def plot_timetable(self, results, fig_save_path=None)-> None:
