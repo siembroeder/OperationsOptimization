@@ -5,7 +5,7 @@ from itertools import product
 from GateModel.GateAssignmentProblem import GateAssignmentProblem
 
 def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600, 
-                             n_replications=1, output_file='sensitivity_results.csv', timetable_flag = None, passenger_type='basic'):
+                             n_replications=1, output_file='sensitivity_results.csv', timetable_flag = None, zip_groups=None):
     """Run sensitivity analysis over parameter ranges."""
 
     # Setup base configuration
@@ -13,31 +13,79 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
     if fixed_params:
         base_config.update(fixed_params)
     
-    # Generate parameter combinations
-    varying_params = list(param_ranges.keys())
-    param_values = [param_ranges[p] for p in varying_params]
-    combinations = list(product(*param_values))
+      
+    # Generate parameter combinations with selective zipping
+    if zip_groups:
+        # Separate zipped and non-zipped parameters
+        zipped_param_names = [param for group in zip_groups for param in group]
+        other_param_names = [p for p in param_ranges.keys() if p not in zipped_param_names]
+        
+        # Create combinations for each zip group
+        zip_group_combinations = []
+        for group in zip_groups:
+            group_values = [param_ranges[p] for p in group]
+            group_combos = list(zip(*group_values))
+            zip_group_combinations.append(group_combos)
+        
+        # Create combinations for non-zipped parameters
+        if other_param_names:
+            other_values = [param_ranges[p] for p in other_param_names]
+            other_combinations = list(product(*other_values))
+        else:
+            other_combinations = [()]
+        
+        # Combine zipped groups with product of non-zipped params
+        all_zip_combinations = list(product(*zip_group_combinations))
+        
+        # Build final combinations
+        combinations = []
+        varying_params = []
+        
+        # Order: zip_group_1 params, zip_group_2 params, ..., other params
+        for group in zip_groups:
+            varying_params.extend(group)
+        varying_params.extend(other_param_names)
+        
+        for zip_combo in all_zip_combinations:
+            for other_combo in other_combinations:
+                # Flatten zip_combo (which is nested tuples)
+                flat_combo = []
+                for group_combo in zip_combo:
+                    flat_combo.extend(group_combo)
+                flat_combo.extend(other_combo)
+                combinations.append(tuple(flat_combo))
+
+    else:
+        # Generate all parameter combinations
+        varying_params = list(param_ranges.keys())
+        param_values = [param_ranges[p] for p in varying_params]
+        combinations = list(product(*param_values))
     
     total_runs = len(combinations) * n_replications
     
+
     # Run experiments, avg over n_replications.
     results = []
-
     for run_idx, combo in enumerate(combinations, 1):
         params = base_config.copy()
         for param_name, param_value in zip(varying_params, combo):
             params[param_name] = param_value
         
-        # Store results for THIS SPECIFIC parameter combination
+        # Store results for this specific parameter combination
         replication_results = []
+        n_non_optimal = 0
         
         for rep in range(n_replications):
             print(f"\nRun {(run_idx-1)*n_replications + rep + 1}/{total_runs}: "
                     f"{dict(zip(varying_params, combo))}, rep {rep+1}")
             
+            # Run single experiment
             params['seed'] = rep
             problem = GateAssignmentProblem(**params)
             result = problem.solve(time_limit=time_limit, verbose=False, plot_timetable_flag=timetable_flag)
+
+            if result ['status'] == 9:
+                n_non_optimal += 1
             
             result_dict = {
                 'replication': rep,
@@ -71,7 +119,8 @@ def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600,
             'status_summary': ','.join(str(r['status']) for r in replication_results),
             'NA_star': sum(r['NA_star'] for r in replication_results) / n_replications,
             'total_pax': sum(r['total_pax'] for r in replication_results) / n_replications,
-            'objective/pax': sum(r['objective/pax'] for r in replication_results) / n_replications
+            'objective/pax': sum(r['objective/pax'] for r in replication_results) / n_replications,
+            'n_non_optimal': n_non_optimal
         }
         
         results.append(averaged_result)
