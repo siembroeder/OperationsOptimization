@@ -2,7 +2,7 @@
 import pandas as pd
 from itertools import product
 
-from GateAssignmentProblem import GateAssignmentProblem
+from GateModel.GateAssignmentProblem import GateAssignmentProblem
 
 def run_sensitivity_analysis(param_ranges, fixed_params=None, time_limit=3600, 
                              n_replications=1, output_file='sensitivity_results.csv', timetable_flag = None, passenger_type='basic'):
