@@ -565,7 +565,7 @@ def plot_timetable_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gat
         start = distinct_times[first_r]
         end = distinct_times[last_r + 1]
 
-        print(f"{ac} @ {gate}: [{start:.3f}, {end:.3f}]")
+        # print(f"{ac} @ {gate}: [{start:.3f}, {end:.3f}]")
 
         if gate == apron:
             y = apron_base_y + apron_assignments[ac][0] * apron_spacing
@@ -600,14 +600,15 @@ def plot_timetable_broken(x_solution, comp_ir, p_ij, e_i, f_i, all_aircraft, gat
                 color=ac_color[ac],
                 edgecolor='black',
                 zorder=3,
-                linewidth=0.5
+                linewidth=0.5,
+                hatch = '//' if 'int' in ac else None
             )
 
             text_x = start + (end-start) / 2
 
             target_ax.text(
                 text_x,
-                y,
+                y-0.05,
                 total_pax_i[ac],                 # e.g. passenger count
                 va='center',
                 ha='center',
