@@ -149,23 +149,24 @@ def main() -> None:
 
 
     # Analysis 4: Passengers
-    REPS = 20
-    FILE_POSTFIX = '...'
+    REPS = 100
+    FILE_POSTFIX = 'passenger_types_r100_window1hr'
     NUM_DOM_GATES = 3
+    WINDOW = (13,14)
     df_noTransferPax: DataFrame = run_sensitivity_analysis(
         param_ranges = {'num_dom_aircraft': np.arange(2,16,1)[::-1], # Non inclusive for end.
         },
         fixed_params = {'num_dom_gates': NUM_DOM_GATES,
                         'num_int_aircraft': 0, 
                         'num_int_gates': 0,
-                        'airport_window': (13,18),
+                        'airport_window': WINDOW,
                         'time_disc': 1,
                         'dom_turnover': 1,
                         'passenger_type':'no_transfer'
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_no_transfer_{FILE_POSTFIX}.csv',
         timetable_flag = False,
     )
     df_noTransferPax.rename(columns={'num_dom_gates': 'n_gates',}, inplace=True)
@@ -177,14 +178,14 @@ def main() -> None:
         fixed_params = {'num_dom_gates': NUM_DOM_GATES,
                         'num_int_aircraft': 0, 
                         'num_int_gates': 0,
-                        'airport_window': (13,14),
+                        'airport_window': WINDOW,
                         'time_disc': 1,
                         'dom_turnover': 1,
                         'passenger_type':'paper'
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_standard_{FILE_POSTFIX}.csv',
         timetable_flag = False,
     )
     df_standard.rename(columns={'num_dom_gates': 'n_gates'}, inplace=True)
@@ -195,14 +196,14 @@ def main() -> None:
         fixed_params = {'num_dom_gates': NUM_DOM_GATES,
                         'num_int_aircraft': 0, 
                         'num_int_gates': 0,
-                        'airport_window': (13,14),
+                        'airport_window': WINDOW,
                         'time_disc': 1,
                         'dom_turnover': 1,
                         'passenger_type':'equal'
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_equal_{FILE_POSTFIX}.csv',
         timetable_flag = False
     )
     df_equal.rename(columns={'num_dom_gates': 'n_gates'}, inplace=True)
@@ -213,14 +214,14 @@ def main() -> None:
         fixed_params = {'num_dom_gates': NUM_DOM_GATES,
                         'num_int_aircraft': 0, 
                         'num_int_gates': 0,
-                        'airport_window': (13,14),
+                        'airport_window': WINDOW,
                         'time_disc': 1,
                         'dom_turnover': 1,
                         'passenger_type':'only_transfer'
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_only_transfer_{FILE_POSTFIX}.csv',
         timetable_flag = False
     )
     df_only_transfer.rename(columns={'num_dom_gates': 'n_gates'}, inplace=True)
@@ -237,6 +238,7 @@ def main() -> None:
     df_only_transfer['pax_scenario'] = 'Only Transfer'
 
     df_combined = pd.concat([df_noTransferPax, df_standard, df_equal, df_only_transfer], ignore_index=True)
+    df_combined.to_csv(f'SensitivityAnalysis/SAoutputData/results_all_scenarios_{FILE_POSTFIX}.csv', index=False)
 
     # Plot all three scenarios together
     plot_sensitivity_results(
