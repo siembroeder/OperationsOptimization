@@ -31,7 +31,7 @@ def main() -> None:
     #     },
     #     time_limit = LIMIT,
     #     n_replications =REPS,
-    #     output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+    #     output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
     #     timetable_flag = False
     # )
     
@@ -45,7 +45,7 @@ def main() -> None:
     #     df1, x_param='num_dom_aircraft', 
     #     metrics=['objective', 'total_time'],
     #     group_by='n_gates',
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png'
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}.png'
     # )
 
     # # Plot objective/pax vs n_aircraft
@@ -53,7 +53,7 @@ def main() -> None:
     #     df1, x_param='num_dom_aircraft', 
     #     metrics=['objective/pax'],
     #     group_by='n_gates',
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png'
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}_perPax.png'
     # )
 
 
@@ -75,7 +75,7 @@ def main() -> None:
     #     },
     #     time_limit = LIMIT,
     #     n_replications =REPS,
-    #     output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+    #     output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
     #     timetable_flag = False
     # )
 
@@ -88,7 +88,7 @@ def main() -> None:
     #     df2, x_param='time_disc', 
     #     metrics=['objective', 'total_time'],
     #     group_by=None,
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}.png',
     #     x_label = 'Time Discretization'
     # )
 
@@ -97,7 +97,7 @@ def main() -> None:
     #     df2, x_param='time_disc', 
     #     metrics=['objective/pax'],
     #     group_by=None,
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}_perPax.png',
     #     x_label = 'Time Discretization'
     # )
 
@@ -118,7 +118,7 @@ def main() -> None:
     #     },
     #     time_limit = LIMIT,
     #     n_replications =REPS,
-    #     output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+    #     output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
     #     timetable_flag = False
     # )
 
@@ -131,7 +131,7 @@ def main() -> None:
     #     df2, x_param='dom_turnover', 
     #     metrics=['objective', 'total_time'],
     #     group_by=None,
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}.png',
     #     x_label = 'Turnaround Time',
     #     secondary_axis = True
     # )
@@ -141,7 +141,7 @@ def main() -> None:
     #     df2, x_param='dom_turnover', 
     #     metrics=['objective/pax'],
     #     group_by=None,
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}_perPax.png',
     #     x_label = 'Turnaround Time'
     # )
 
@@ -165,7 +165,7 @@ def main() -> None:
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
         timetable_flag = False,
     )
     df_noTransferPax.rename(columns={'num_dom_gates': 'n_gates',}, inplace=True)
@@ -184,7 +184,7 @@ def main() -> None:
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
         timetable_flag = False,
     )
     df_standard.rename(columns={'num_dom_gates': 'n_gates'}, inplace=True)
@@ -202,7 +202,7 @@ def main() -> None:
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
         timetable_flag = False
     )
     df_equal.rename(columns={'num_dom_gates': 'n_gates'}, inplace=True)
@@ -220,7 +220,7 @@ def main() -> None:
         },
         time_limit = LIMIT,
         n_replications =REPS,
-        output_file=f'SAoutputData/results_{FILE_POSTFIX}.csv',
+        output_file=f'SensitivityAnalysis/SAoutputData/results_{FILE_POSTFIX}.csv',
         timetable_flag = False
     )
     df_only_transfer.rename(columns={'num_dom_gates': 'n_gates'}, inplace=True)
@@ -244,7 +244,7 @@ def main() -> None:
         x_param='num_dom_aircraft', 
         metrics=['objective/pax','total_time'],
         group_by='pax_scenario',
-        save_path=f'Graphs/SensitivityAnalysis/plot_AllScenarios_{FILE_POSTFIX}.png',
+        save_path=f'SensitivityAnalysis/SAGraphs/plot_AllScenarios_{FILE_POSTFIX}.png',
         x_label='Total Aircraft'
     )
 
@@ -255,7 +255,7 @@ def main() -> None:
     #     df_noTransferPax, x_param='num_dom_aircraft', 
     #     metrics=['objective','total_time','objective/pax'],
     #     group_by='passenger_type',
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_noTransfer_{FILE_POSTFIX}.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_noTransfer_{FILE_POSTFIX}.png',
     #     x_label = 'Total Aircraft'
     # )
 
@@ -263,7 +263,7 @@ def main() -> None:
     #     df_standard, x_param='num_dom_aircraft', 
     #     metrics=['objective','total_time','objective/pax'],
     #     group_by='passenger_type',
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_Standard_{FILE_POSTFIX}.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_Standard_{FILE_POSTFIX}.png',
     #     x_label = 'Total Aircraft'
     # )
 
@@ -271,7 +271,7 @@ def main() -> None:
     #     df_equal, x_param='num_dom_aircraft', 
     #     metrics=['objective','total_time','objective/pax'],
     #     group_by='passenger_type',
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_Equal_{FILE_POSTFIX}.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_Equal_{FILE_POSTFIX}.png',
     #     x_label = 'Total Aircraft'
     # )
 
@@ -280,7 +280,7 @@ def main() -> None:
     #     df_noTransferPax, x_param='num_dom_aircraft', 
     #     metrics=['objective/pax'],
     #     group_by='n_gates',
-    #     save_path=f'Graphs/SensitivityAnalysis/plot_{FILE_POSTFIX}_perPax.png',
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{FILE_POSTFIX}_perPax.png',
     #     x_label = 'Total Aircraft'
     # )
 
