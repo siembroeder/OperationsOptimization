@@ -39,7 +39,7 @@ def getTransferPassengers(all_aircraft:list, num_aircraft:int, all_aircraft_time
             aj, dj = all_aircraft_times[j]
 
             if ai < dj and aj < di:  # overlap
-                val = np.random.randint(0, int(200 / num_aircraft) + 1)
+                val = np.random.randint(1, int(200 / num_aircraft) + 1)
                 # val = np.random.randint(0, int(200) + 1)
                 p_ij[i][j] = val
                 # p_ij[j][i] = val  # enforce symmetry
