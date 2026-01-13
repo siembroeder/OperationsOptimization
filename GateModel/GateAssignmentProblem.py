@@ -49,14 +49,17 @@ class GateAssignmentProblem:
         self.all_gates = set(self.dom_gates) | set(self.int_gates)
         
         # Generate temporal parameters
-        self.dom_aircraft_times = getArrivalDepartureTimes(self.dom_aircraft, cfg['dom_turnover'], cfg['airport_window'], cfg['time_disc'])
-        self.int_aircraft_times = getArrivalDepartureTimes(self.int_aircraft, cfg['int_turnover'], cfg['airport_window'], cfg['time_disc'])
+        self.dom_aircraft_times = getArrivalDepartureTimes(self.dom_aircraft, cfg['airport_window'], cfg['time_disc'])
+        self.int_aircraft_times = getArrivalDepartureTimes(self.int_aircraft, cfg['airport_window'], cfg['time_disc'])
         self.all_aircraft_times = self.dom_aircraft_times | self.int_aircraft_times
         
         all_times = [t for times in self.all_aircraft_times.values() for t in times]
         self.distinct_times = sorted(set(all_times))
         self.comp_ir = getCompatabilityMatrix(self.all_aircraft_times, self.distinct_times)
         
+        print(f'All times: {all_times}')
+        print(f'Distinct times: {self.distinct_times}')
+
         # Calculate minimum apron requirement
         self.NA_star = findMinApron(self.dom_aircraft_times, self.int_aircraft_times, self.dom_gates, self.int_gates)
         
@@ -136,12 +139,29 @@ class GateAssignmentProblem:
         model.optimize(mip_callback)
         t_solve = time.time() - t_solve_start
         
+        print(f"Status: {model.status}")
+        print(f"Objective: {model.objVal}")
+        print(f"Number of no-overlap constraints: {sum(1 for c in model.getConstrs() if 'no_overlap' in c.ConstrName)}")
+
         # Extract results safely
         results = self.extract_results(model, x, t_build, t_solve, iter_log)
 
+        x_solution = results['x_solution']
+        print(f'x_solution: {x_solution}')
+        print([f'x_solution[{ac}]: {x_solution[ac][1]}' for ac in self.dom_aircraft])
+
+        for k in [g for g in self.dom_gates if g != 'apron']:
+            for r in range(len(self.distinct_times) - 1):
+                overlap_sum = sum(self.comp_ir[ac][r] * x_solution[ac][1] for ac in self.dom_aircraft if x_solution[ac][0] == k)
+                print(f'overlap_sum: {overlap_sum}')
+                if overlap_sum > 1:
+                    print(f"VIOLATION at gate {k}, interval {r}: {overlap_sum} aircraft")
+
+        print('passed test')
+
         if plot_timetable_flag:
             self.plot_timetable(results)
-        
+    
         return results
 
     def extract_results(self, model, x, t_build, t_solve, iter_log):
@@ -166,7 +186,8 @@ class GateAssignmentProblem:
                     pass
             
             try:
-                x_solution = {ac: k for (ac, k), var in x.items() if var.X > 0.5}
+                print(f'x.items: {[((ac,k), var) for (ac,k),var in x.items()]}')
+                x_solution = {ac: [k,var.X] for (ac, k), var in x.items() if var.X > 0.5}
             except:
                 pass
         

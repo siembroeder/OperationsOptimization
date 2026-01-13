@@ -97,20 +97,25 @@ def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set) -> 
             d_kl[k][l] = abs(xk - xl) + abs(yk - yl)
     return d_kl, ed_k
 
-def getArrivalDepartureTimes(aircraft:list, turnovertime:float, window:tuple, time_discretization:float) -> Dict[str, tuple[int, int]]:
+def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:float) -> Dict[str, tuple[int, int]]:
     '''
-    returns dict with {ac: (arrivaltime, departuretime), ...}
+    returns dict with {ac: (arrivaltime, departuretime), ...} in hours
+    time_disc is in minutes    
     '''
     times = {}
+
+    open, close = window
+
+    step = time_discretization / 60 # minutes to hours
+    possible_times = np.arange(open,close + step, step)
+
     for ac in aircraft:
-        possible_times = np.arange(window[0], window[1], time_discretization) # only operate planes in window between opening and closing of airport +turnovertime
-        
-        time_assigned = False
-        while not time_assigned:
-            arrival = np.random.choice(possible_times)
-            departure = arrival + turnovertime
-            if departure <= window[1]:
-                times[ac] = (arrival, departure)
-                time_assigned =True
+
+        arrival = np.random.choice(possible_times)
+        tat     = 0.5 + np.random.choice(np.arange(0,0.5+step,step))
+
+        departure = arrival + tat 
+        times[ac] = (arrival, departure)
+
     return times
 
