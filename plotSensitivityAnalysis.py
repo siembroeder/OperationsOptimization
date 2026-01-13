@@ -19,7 +19,7 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
                 grouped = subset.groupby(x_param)[metric].agg(['mean', 'std'])
             
                 ax.plot(grouped.index, grouped['mean'], marker='o', 
-                        label=f"{group_by}={group_val}")
+                        label=f"{group_by}={group_val}") # label=f'{group_val} for passenger types.
                 ax.fill_between(grouped.index, 
                                 grouped['mean'] - grouped['std'],
                                 grouped['mean'] + grouped['std'], 
@@ -42,21 +42,14 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
         # ax.set_xlabel(x_param.replace('_', ' ').title(), fontsize=11)
         ax.set_xlabel(x_label, fontsize=11)
         ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=11)
-        
-        if x_param in ['n_gates', 'num_dom_aircraft']:
-            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-
-        if i == 1:
-            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-
         ax.grid(True, alpha=0.3)
         if group_by:
             ax.legend(fontsize=10)
-    
-    # plt.tight_layout()
-    # if save_path:
-    #     plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    # plt.show()
+
+        if x_param in ['n_gates', 'num_dom_aircraft']:
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        if i == 1:
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         if secondary_axis:
             # Create secondary y-axis
@@ -95,6 +88,10 @@ def plot_sensitivity_results(df, x_param, metrics=['objective', 'total_time'],
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
+
+
+
+
 
 def plot_heatmap(df, x_param, y_param, metric='objective', save_path=None, 
                 annotate=True, cmap='viridis'):
