@@ -8,7 +8,7 @@ import matplotlib
 
 from BuildModel import BuildGateModel
 from apronMinimization   import findMinApron
-from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
+from ConstructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
 from plotGateAssignments import plot_timetable_broken
 
 class GateAssignmentProblem:

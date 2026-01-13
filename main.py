@@ -5,9 +5,9 @@ import pandas as pd
 
 
 # from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_gate_schedule_hours_distinct_broken
-from plotSensitivityAnalysis import plot_sensitivity_results, plot_comparison_chart, plot_heatmap, plot_utilization_analysis
-from runSensitivityAnalsyis import run_sensitivity_analysis
-from plotGateAssignments import plot_timetable_broken
+from SensitivityAnalysis.plotSensitivityAnalysis import plot_sensitivity_results, plot_comparison_chart, plot_heatmap, plot_utilization_analysis
+from SensitivityAnalysis.runSensitivityAnalsyis import run_sensitivity_analysis
+from GateModel.plotGateAssignments import plot_timetable_broken
 
 def main() -> None:
 

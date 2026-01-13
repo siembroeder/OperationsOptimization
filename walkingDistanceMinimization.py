@@ -7,10 +7,10 @@ from gurobipy import quicksum, GRB, Model
 import time
 import math
 
-from apronMinimization import findMinApron
-from constructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
-from plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_timetable_broken
-from BuildModel import BuildGateModel
+from GateModel.apronMinimization import findMinApron
+from GateModel.ConstructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
+from GateModel.plotGateAssignments import plot_gate_schedule, plot_gate_schedule_hours, plot_gate_schedule_hours_distinct, plot_timetable_broken
+from GateModel.BuildModel import BuildGateModel
 
 
 def main():
