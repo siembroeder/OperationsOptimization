@@ -5,6 +5,7 @@ log_files/
 Graphs/
 *.png
 *.csv
+walkingDistanceMinimization.py
 
 
 
