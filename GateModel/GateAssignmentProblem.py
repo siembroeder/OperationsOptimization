@@ -1,4 +1,4 @@
-from plotGateAssignments import plot_gate_schedule_hours_distinct
+
 import numpy as np
 from gurobipy import GRB
 import time
@@ -6,10 +6,10 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib
 
-from BuildModel import BuildGateModel
-from apronMinimization   import findMinApron
-from ConstructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
-from plotGateAssignments import plot_timetable_broken
+from GateModel.BuildModel import BuildGateModel
+from GateModel.apronMinimization   import findMinApron
+from GateModel.ConstructParameters import getAircraft, getGates, getTransferPassengers, getCompatabilityMatrix, getGateCoords, getGateDistances, getArrivalDepartureTimes
+from GateModel.plotGateAssignments import plot_timetable_broken
 
 class GateAssignmentProblem:
     """Single gate assignment problem instance"""
