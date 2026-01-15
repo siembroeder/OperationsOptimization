@@ -79,49 +79,15 @@ def findAircraftDistribution(z:dict,aircraft:dict, arcs:list, source:int, model:
 
     return NA_x
 
-def findAssignedLocations(z:dict, aircraft:dict, arcs:list, nodes:dict, node_to_aircraft:dict) -> tuple[set, set]:
-    aircraft_at_gates = set()    
-    for k in nodes.values():
-        if sum(z[k, j].X for (i, j) in arcs if i == k) == 1.0:
-            aircraft_at_gates.add(node_to_aircraft[k])
-
-    aircraft_at_apron = set(aircraft.keys()) - aircraft_at_gates
-
-    return aircraft_at_gates, aircraft_at_apron
-
-def findGateSchedules(z:dict, arcs:list, source:int, sink:int, node_to_aircraft:dict) -> List:
-    # Extract gate schedules
-    path_starts = [j for (i, j) in arcs if i == source and z[i, j].X == 1.0]
-
-    gate_paths = []
-    for start in path_starts:
-        path = []
-        current = start
-
-        while current != sink:
-            if current != source:
-                path.append(node_to_aircraft[current])
-
-            next_nodes = [j for (i, j) in arcs if i == current and z[i, j].X == 1.0]
-            if not next_nodes:
-                break
-
-            current = next_nodes[0]
-        
-        gate_paths.append(path)
-
-    return gate_paths
-
 def findMinApron(dom_aircraft:dict, int_aircraft:dict, dom_gates:list, int_gates:list) -> int:
 
     dom_arcs, dom_nodes, dom_source, dom_sink = constructArcs(dom_aircraft)
     int_arcs, int_nodes, int_source, int_sink = constructArcs(int_aircraft)
 
+    dom_apron_model, dom_z = optimizeApronAssignmentModel(dom_arcs, dom_gates, dom_nodes, dom_source, dom_sink)
+    int_apron_model, int_z = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
     
-    dom_apron_model, dom_z         = optimizeApronAssignmentModel(dom_arcs, dom_gates, dom_nodes, dom_source, dom_sink)
     NA_D = findAircraftDistribution(dom_z, dom_aircraft, dom_arcs, dom_source, dom_apron_model)
-
-    int_apron_model, int_z         = optimizeApronAssignmentModel(int_arcs, int_gates, int_nodes, int_source, int_sink)
     NA_I = findAircraftDistribution(int_z, int_aircraft, int_arcs, int_source, int_apron_model)
 
     NA_star = len(dom_aircraft)+len(int_aircraft) - NA_I - NA_D
@@ -131,6 +97,40 @@ def findMinApron(dom_aircraft:dict, int_aircraft:dict, dom_gates:list, int_gates
 
 
 def main():
+
+
+    def findAssignedLocations(z:dict, aircraft:dict, arcs:list, nodes:dict, node_to_aircraft:dict) -> tuple[set, set]:
+        aircraft_at_gates = set()    
+        for k in nodes.values():
+            if sum(z[k, j].X for (i, j) in arcs if i == k) == 1.0:
+                aircraft_at_gates.add(node_to_aircraft[k])
+
+        aircraft_at_apron = set(aircraft.keys()) - aircraft_at_gates
+
+        return aircraft_at_gates, aircraft_at_apron
+
+    def findGateSchedules(z:dict, arcs:list, source:int, sink:int, node_to_aircraft:dict) -> List:
+        # Extract gate schedules
+        path_starts = [j for (i, j) in arcs if i == source and z[i, j].X == 1.0]
+
+        gate_paths = []
+        for start in path_starts:
+            path = []
+            current = start
+
+            while current != sink:
+                if current != source:
+                    path.append(node_to_aircraft[current])
+
+                next_nodes = [j for (i, j) in arcs if i == current and z[i, j].X == 1.0]
+                if not next_nodes:
+                    break
+
+                current = next_nodes[0]
+            
+            gate_paths.append(path)
+
+        return gate_paths
 
     dom_gates = [1,2,3,'apron']
     dom_aircraft = {'dom1': (0,1),

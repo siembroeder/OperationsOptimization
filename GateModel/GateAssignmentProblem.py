@@ -3,8 +3,6 @@ import numpy as np
 from gurobipy import GRB
 import time
 import math
-import matplotlib.pyplot as plt
-import matplotlib
 
 from GateModel.BuildModel import BuildGateModel
 from GateModel.apronMinimization   import findMinApron

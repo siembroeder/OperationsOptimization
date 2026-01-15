@@ -221,7 +221,6 @@ def analysis_validation(limit:int= 600, reps:int=1, file_postfix:str='validation
     
     return df
 
-
 def analysis_layouts(limit:int= 600, reps:int=1, file_postfix:str='validation', window:str='set1') -> DataFrame:
     t_start = time.time()
 

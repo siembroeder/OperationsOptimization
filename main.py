@@ -24,8 +24,8 @@ def main() -> None:
     # df5_set2 = analysis_validation(limit=5, reps = 1, file_postfix='validation_set2_r1', window='set2')
 
 
-    # Analysis 6: Layout comparison
-    df6 = analysis_layouts(limit=60, reps=100, file_postfix='layout_set1_r100', window='set1')
+    # Analysis 6: Layout comparison DONE
+    # df6 = analysis_layouts(limit=60, reps=10, file_postfix='layout_set1_r1', window='set1')
 
 
 

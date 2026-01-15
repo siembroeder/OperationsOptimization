@@ -4,39 +4,6 @@ from typing import Dict, List
 
 
 
-def getCoordsGatesBER(gates)->Dict[str,tuple[int,int]]:
-
-    # gates = getGates(num=18, gate_type='BER')
-
-    gate_coords = {}
-    for i, gate in enumerate(gates):
-        i += 1 # to count starting from 1
-        if i%2 == 1: 
-            gate_coords[gate] = (i + 2, 0)
-
-        elif i%2 == 0:
-            gate_coords[gate] = (0, i + 1)
-            
-    gate_coords['apron'] = (30,0)
-
-    return gate_coords
-
-def getCoordsGatesVIE(gates)->Dict[str,tuple[int,int]]:
-
-    # gates = getGates(num=18, gate_type='VIE')
-
-    gate_coords = {}
-    for i, gate in enumerate(gates):
-        i += 1 # to count starting from 1
-        if i%2 == 0:
-            gate_coords[gate] = (i+1,0.5)
-
-        elif i%2 == 1:
-            gate_coords[gate] = (i+2,0.5)
-
-    gate_coords['apron'] = (0,30)
-    return gate_coords
-
 def getAircraft(num:int = 1, ac_type:str = '') -> List[str]:
     '''
     Returns list of aircraft
@@ -112,6 +79,36 @@ def getGateCoords(dom_gates:list, int_gates:list) -> Dict[str, tuple[int, int]]:
     dom_gates have positive x
     int_gates have negative x
     '''
+    def getCoordsGatesBER(gates)->Dict[str,tuple[int,int]]:
+        ''' Return gate coordinates as inspired by gates A1-A38 at BER '''
+        gate_coords = {}
+        for i, gate in enumerate(gates):
+            i += 1 # to count starting from 1
+            if i%2 == 1: 
+                gate_coords[gate] = (i + 2, 0)
+
+            elif i%2 == 0:
+                gate_coords[gate] = (0, i + 1)
+                
+        gate_coords['apron'] = (30,0)
+
+        return gate_coords
+
+    def getCoordsGatesVIE(gates)->Dict[str,tuple[int,int]]:
+        ''' Return gate coordinates as inspired by gates F1-G37 at VIE '''
+
+        gate_coords = {}
+        for i, gate in enumerate(gates):
+            i += 1 # to count starting from 1
+            if i%2 == 0:
+                gate_coords[gate] = (i+1,0.5)
+
+            elif i%2 == 1:
+                gate_coords[gate] = (i+2,-0.5)
+
+        gate_coords['apron'] = (0,30)
+        return gate_coords
+
 
     if 'BER' in dom_gates[0]:
         return getCoordsGatesBER(dom_gates)
@@ -119,7 +116,6 @@ def getGateCoords(dom_gates:list, int_gates:list) -> Dict[str, tuple[int, int]]:
     if 'VIE' in dom_gates[0]:
         return getCoordsGatesVIE(dom_gates)
     
-
     gate_coords = {}
     for i,dom_gate in enumerate(dom_gates):
         gate_coords[dom_gate] = (3+i*2, 0)
@@ -149,10 +145,10 @@ def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set) -> 
             d_kl[k][l] = abs(xk - xl) + abs(yk - yl)
     return d_kl, ed_k
 
-def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:float, tat_input:float = 0) -> Dict[str, tuple[int, int]]:
+def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:float = 0.0166, tat_input:float = 0) -> Dict[str, tuple[int, int]]:
     '''
     returns dict with {ac: (arrivaltime, departuretime), ...} in hours
-    time_disc is in minutes    
+    time_disc default is in minutes    
     '''
     times = {}
 
@@ -188,5 +184,4 @@ def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:fl
 
 if __name__ == '__main__':
     gates = getGates(num=6,gate_type='VIE')
-
-    print(getCoordsGatesVIE(gates))
+    print(getGateCoords(gates, []))
