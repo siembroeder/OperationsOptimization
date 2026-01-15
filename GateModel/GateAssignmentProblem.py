@@ -19,8 +19,8 @@ class GateAssignmentProblem:
         'num_int_aircraft': 0,
         'num_dom_gates': 10,
         'num_int_gates': 0,
-        'dom_turnover': 1.0,
-        'int_turnover': 1.5,
+        'dom_turnover': 0.0,
+        'int_turnover': 0.0,
         'airport_window': 'set1', 
         'time_disc': 0.1666,
         'seed': 1,
@@ -40,17 +40,18 @@ class GateAssignmentProblem:
         
         # Generate aircraft and gates
         self.dom_aircraft = getAircraft(num=cfg['num_dom_aircraft'], ac_type='dom')
+        self.dom_gates    = getGates(num=cfg['num_dom_gates'], gate_type='A')
+
         self.int_aircraft = getAircraft(num=cfg['num_int_aircraft'], ac_type='int')
+        self.int_gates    = getGates(num=cfg['num_int_gates'], gate_type='B')
+
+        self.all_gates    = set(self.dom_gates) | set(self.int_gates)
         self.all_aircraft = self.dom_aircraft + self.int_aircraft
         self.num_aircraft = len(self.all_aircraft)
         
-        self.dom_gates = getGates(num=cfg['num_dom_gates'], gate_type='A')
-        self.int_gates = getGates(num=cfg['num_int_gates'], gate_type='B')
-        self.all_gates = set(self.dom_gates) | set(self.int_gates)
-        
         # Generate temporal parameters
         self.dom_aircraft_times = getArrivalDepartureTimes(self.dom_aircraft, cfg['airport_window'], cfg['time_disc'],cfg['dom_turnover'])
-        self.int_aircraft_times = getArrivalDepartureTimes(self.int_aircraft, cfg['airport_window'], cfg['time_disc'],cfg['dom_turnover'])
+        self.int_aircraft_times = getArrivalDepartureTimes(self.int_aircraft, cfg['airport_window'], cfg['time_disc'],cfg['int_turnover'])
         self.all_aircraft_times = self.dom_aircraft_times | self.int_aircraft_times
         
         all_times = [t for times in self.all_aircraft_times.values() for t in times]
@@ -74,7 +75,7 @@ class GateAssignmentProblem:
         entrance_coords = (0, 0)
         self.gate_coords = getGateCoords(self.dom_gates, self.int_gates)
         self.d_kl, self.ed_k = getGateDistances(entrance_coords, self.gate_coords, self.all_gates)
-    
+   
 
     def generate_passenger_data(self):
         passenger_type = self.config['passenger_type']

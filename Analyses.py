@@ -56,7 +56,7 @@ def analysis_time_discretization(limit:int=600, reps:int=1, file_postfix:str='ti
     t_start = time.time()
      
     df = run_sensitivity_analysis(
-        param_ranges = {'time_disc': np.arange(0.,1.0,0.01)
+        param_ranges = {'time_disc': np.arange(1,60,1)#np.arange(0.1,1.0,0.05)
         },
         fixed_params = {'num_dom_aircraft': 15,
                         'num_dom_gates': 3,
@@ -64,7 +64,7 @@ def analysis_time_discretization(limit:int=600, reps:int=1, file_postfix:str='ti
                         'num_int_gates': 0,
                         'airport_window': window,
                         #'time_disc': 1,
-                        # 'dom_turnover': 1
+                        #'dom_turnover': 1
         },
         time_limit = limit,
         n_replications =reps,
@@ -78,17 +78,18 @@ def analysis_time_discretization(limit:int=600, reps:int=1, file_postfix:str='ti
         metrics=['objective', 'total_time'],
         group_by=None,
         save_path=f'SensitivityAnalysis/SAGraphs/plot_{file_postfix}.png',
-        x_label = 'Time discretization'
+        x_label = 'Time discretization',
+        secondary_axis=True
     )
 
     # Plot objective/pax vs time_disc
-    plot_sensitivity_results(
-        df, x_param='time_disc', 
-        metrics=['objective/pax'],
-        group_by=None,
-        save_path=f'SensitivityAnalysis/SAGraphs/plot_{file_postfix}_perPax.png',
-        x_label = 'Time discretization'
-    )
+    # plot_sensitivity_results(
+    #     df, x_param='time_disc', 
+    #     metrics=['objective/pax'],
+    #     group_by=None,
+    #     save_path=f'SensitivityAnalysis/SAGraphs/plot_{file_postfix}_perPax.png',
+    #     x_label = 'Time discretization'
+    # )
     
     t_end = time.time()
     print(f'Analyis time disc took: {round((t_end - t_start) / 60, ndigits=2)} minutes.')
@@ -100,14 +101,14 @@ def analysis_turnaround_time(limit:int=600, reps:int=1, file_postfix:str='TAT', 
     t_start = time.time()
     
     df = run_sensitivity_analysis(
-        param_ranges = {'dom_turnover': np.arange(0.1, 2., 0.1)[::-1] # in hours
+        param_ranges = {'dom_turnover': np.arange(0.1, 3, 0.1)[::-1] # in hours
         },
         fixed_params = {'num_dom_aircraft': 15,
                         'num_dom_gates': 3,
                         'num_int_aircraft': 0, 
                         'num_int_gates': 0,
                         'airport_window': window,
-                        'time_disc': 1,
+                        # 'time_disc': 1,
                         # 'dom_turnover': 1
         },
         time_limit = limit,
@@ -123,7 +124,7 @@ def analysis_turnaround_time(limit:int=600, reps:int=1, file_postfix:str='TAT', 
         group_by=None,
         save_path=f'SensitivityAnalysis/SAGraphs/plot_{file_postfix}.png',
         x_label = 'Turnaround time',
-        secondary_axis = True
+        secondary_axis = False
     )
 
     # Plot objective/pax vs turnaround time
@@ -221,4 +222,50 @@ def analysis_validation(limit:int= 600, reps:int=1, file_postfix:str='validation
     return df
 
 
+def analysis_layouts(limit:int= 600, reps:int=1, file_postfix:str='validation', window:str='set1') -> DataFrame:
+    t_start = time.time()
 
+    airports = ['BER','VIE']
+    dataframes = []
+
+
+    for airport in airports:
+        df = run_sensitivity_analysis(
+            param_ranges = {
+                'num_dom_aircraft': np.arange(1,15,1)[::-1],
+                # 'num_int_aircraft': np.arange(1,10,1),
+                'num_dom_gates': [airport],
+            },
+            fixed_params={
+                'airport_window': window,
+                # 'num_dom_aircraft':5,
+                # 'time_disc': 1,
+                # 'dom_turnover': 1,
+                # 'int_turnover': 2,
+                'passenger_type': 'paper'
+            },
+            time_limit = limit,
+            n_replications=reps,
+            output_file=f'SensitivityAnalysis/SAoutputData/results_{file_postfix}.csv',
+            timetable_flag=False
+        )
+        df['airport_name'] = airport
+        dataframes.append(df)
+
+    df_combined = pd.concat(dataframes, ignore_index=True)
+    df_combined.to_csv(f'SensitivityAnalysis/SAoutputData/results_layouts_{file_postfix}.csv', index=False)
+
+    # Plot combined results
+    plot_sensitivity_results(
+        df_combined, 
+        x_param='num_dom_aircraft', 
+        metrics=['objective/pax', 'total_time', 'NA_star'],
+        group_by='airport_name',
+        save_path=f'SensitivityAnalysis/SAGraphs/plot_AllScenarios_{file_postfix}.png',
+        x_label='Total aircraft'
+    )
+
+    t_end = time.time()
+    print(f'Analysis layouts took: {round((t_end - t_start) / 60, ndigits=2)} minutes.')
+    
+    return df

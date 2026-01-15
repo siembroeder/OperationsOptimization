@@ -2,6 +2,41 @@
 import numpy as np
 from typing import Dict, List
 
+
+
+def getCoordsGatesBER(gates)->Dict[str,tuple[int,int]]:
+
+    # gates = getGates(num=18, gate_type='BER')
+
+    gate_coords = {}
+    for i, gate in enumerate(gates):
+        i += 1 # to count starting from 1
+        if i%2 == 1: 
+            gate_coords[gate] = (i + 2, 0)
+
+        elif i%2 == 0:
+            gate_coords[gate] = (0, i + 1)
+            
+    gate_coords['apron'] = (30,0)
+
+    return gate_coords
+
+def getCoordsGatesVIE(gates)->Dict[str,tuple[int,int]]:
+
+    # gates = getGates(num=18, gate_type='VIE')
+
+    gate_coords = {}
+    for i, gate in enumerate(gates):
+        i += 1 # to count starting from 1
+        if i%2 == 0:
+            gate_coords[gate] = (i+1,0.5)
+
+        elif i%2 == 1:
+            gate_coords[gate] = (i+2,0.5)
+
+    gate_coords['apron'] = (0,30)
+    return gate_coords
+
 def getAircraft(num:int = 1, ac_type:str = '') -> List[str]:
     '''
     Returns list of aircraft
@@ -12,11 +47,20 @@ def getAircraft(num:int = 1, ac_type:str = '') -> List[str]:
         aircraft.append(ac_type+str(i))
     return aircraft
 
-def getGates(num:int = 3, gate_type:str = '') -> List[str]:
+def getGates(num= 3, gate_type:str = '') -> List[str]:
     '''
     Returns list of gates
     eg if ac_type is "A", returns ["A1", "A2", "A3",...,"Ax", "apron"] with x == num
     '''
+
+    if num=='BER':
+        num = 6 #18
+        gate_type = 'BER'
+
+    if num=='VIE':
+        num = 6 #18
+        gate_type = 'VIE'
+
     gates = []
     for i in range(1,num+1):
         gates.append(gate_type+str(i))
@@ -68,6 +112,14 @@ def getGateCoords(dom_gates:list, int_gates:list) -> Dict[str, tuple[int, int]]:
     dom_gates have positive x
     int_gates have negative x
     '''
+
+    if 'BER' in dom_gates[0]:
+        return getCoordsGatesBER(dom_gates)
+    
+    if 'VIE' in dom_gates[0]:
+        return getCoordsGatesVIE(dom_gates)
+    
+
     gate_coords = {}
     for i,dom_gate in enumerate(dom_gates):
         gate_coords[dom_gate] = (3+i*2, 0)
@@ -97,7 +149,7 @@ def getGateDistances(entrance_coords:tuple, gate_coords:dict, all_gates:set) -> 
             d_kl[k][l] = abs(xk - xl) + abs(yk - yl)
     return d_kl, ed_k
 
-def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:float, tat:float) -> Dict[str, tuple[int, int]]:
+def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:float, tat_input:float = 0) -> Dict[str, tuple[int, int]]:
     '''
     returns dict with {ac: (arrivaltime, departuretime), ...} in hours
     time_disc is in minutes    
@@ -107,12 +159,12 @@ def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:fl
 
     if window=='set1':
         open, close = 13,18
-        tat_var = 0.5
+        tat_base = 0.5 if tat_input == 0 else tat_input
 
     elif window=='set2':
         open,close = 13,15.5
-        tat_var = 1.0
-        
+        tat_base = 1.0 if tat_input == 0 else tat_input
+
     else:
         print('\n\nIncorrect window!\n\n')
         print(window)
@@ -120,15 +172,21 @@ def getArrivalDepartureTimes(aircraft:list, window:tuple, time_discretization:fl
 
     step = time_discretization / 60 # minutes to hours
     possible_times = np.arange(open,close + step, step)
+    tat_variance = np.arange(0,tat_base+step,step)
 
     for ac in aircraft:
 
         arrival = np.random.choice(possible_times)
         # tat     = 0.5 + np.random.choice(np.arange(0,0.5+step,step))
-        tat     = tat_var + np.random.choice(np.arange(0,0.5+step,step)) 
+        tat     = tat_base + np.random.choice(tat_variance)
 
         departure = arrival + tat 
         times[ac] = (arrival, departure)
 
     return times
 
+
+if __name__ == '__main__':
+    gates = getGates(num=6,gate_type='VIE')
+
+    print(getCoordsGatesVIE(gates))
