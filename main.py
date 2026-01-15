@@ -1,5 +1,5 @@
 
-from Analyses import analysis_aircraft_vs_gates, analysis_time_discretization, analysis_turnaround_time, analysis_passenger_types, analysis_validation, analysis_layouts
+from SensitivityAnalysis.Analyses import analysis_aircraft_vs_gates, analysis_time_discretization, analysis_turnaround_time, analysis_passenger_types, analysis_validation, analysis_layouts
 
 def main() -> None:
     """Select the type of analysis to run."""
